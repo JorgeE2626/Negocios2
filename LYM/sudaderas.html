@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sudaderas | LMY</title>
+
+    <link rel="stylesheet" href="Proyecto.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="container" style="padding-top:120px; padding-bottom:60px;">
+
+        <!-- Botón regresar -->
+        <div class="back-button">
+            <a href="sistema.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Volver a la tienda
+            </a>
+        </div>
+
+        <div class="producto-card">
+            <div class="producto-container">
+
+                <!-- Imagen -->
+                <div class="producto-image">
+                    <img src="imagen/sudadera.jpg" alt="Sudadera personalizada" style="width:200px;">
+                    <div class="producto-overlay">
+                        <span class="precio">Desde $425</span>
+                    </div>
+                </div>
+
+                <!-- Información -->
+                <div class="producto-content">
+                    <h3>Sudadera Personalizada</h3>
+
+                    <ul class="producto-features">
+                        <li><i class="fas fa-check"></i> Sudadera algodón–poliéster alta calidad</li>
+                        <li><i class="fas fa-check"></i> Interior suave tipo fleece</li>
+                        <li><i class="fas fa-check"></i> Impresión DTF a todo color</li>
+                        <li><i class="fas fa-check"></i> Tallas: CH, M, G, XL</li>
+                        <li><i class="fas fa-check"></i> Colores: blanco, negro, gris</li>
+                        <li><i class="fas fa-check"></i> Diseño totalmente personalizado</li>
+                    </ul>
+
+                    <h4>Selecciona tu sudadera:</h4>
+
+                    <select class="select-producto" id="opcionesProducto" data-producto="Sudadera personalizada"
+                        data-mensaje="mensajeAgregado">
+                        <option value="425">Sudadera básica DTF - $425</option>
+                        <option value="480">Sudadera premium (DTF grande) - $480</option>
+                        <option value="520">Sudadera premium + nombre personalizado - $520</option>
+                    </select>
+
+                    <label for="cantidadProducto">Cantidad:</label>
+                    <input type="number" id="cantidadProducto" min="1" value="1">
+                    <br><br>
+
+                    <!-- Botones -->
+                    <div class="producto-actions" style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="agregarCarritoDesdeSelect('opcionesProducto')">
+                            <i class="fas fa-cart-plus"></i> Agregar al carrito
+                        </button>
+
+                        <a href="carrito.html" class="btn btn-outline">
+                            <i class="fas fa-shopping-cart"></i> Ver carrito
+                        </a>
+                        <a href="prodrelacionados .html" class="btn btn-outline">
+                            Productos relacionados
+                        </a>
+                    </div>
+
+                    <p id="mensajeAgregado" class="success-mini" style="display:none;">
+                        ✔ Producto agregado al carrito
+                    </p>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function agregarCarritoDesdeSelect(selectId) {
+
+            const select = document.getElementById(selectId);
+            const cantidadInput = document.getElementById("cantidadProducto");
+
+            // seguridad
+            if (!select || !cantidadInput) {
+                alert("Error: no se encontró el producto o la cantidad");
+                return;
+            }
+
+            const producto = select.dataset.producto;
+            const mensajeId = select.dataset.mensaje;
+
+            const descripcion = select.options[select.selectedIndex].text;
+            const precio = Number(select.value);
+            let cantidad = Number(cantidadInput.value);
+
+            // evitar cantidades inválidas
+            if (isNaN(cantidad) || cantidad <= 0) {
+                cantidad = 1;
+                cantidadInput.value = 1;
+            }
+
+            let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+            // buscar si ya existe
+            const existente = carrito.find(item =>
+                item.producto === producto && item.descripcion === descripcion
+            );
+
+            if (existente) {
+                existente.cantidad += cantidad;
+            } else {
+                carrito.push({
+                    producto: producto,
+                    descripcion: descripcion,
+                    precio: precio,
+                    cantidad: cantidad
+                });
+            }
+
+            // guardar
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+
+            // mensaje visual
+            const msg = document.getElementById(mensajeId);
+            if (msg) {
+                msg.style.display = "block";
+                setTimeout(() => {
+                    msg.style.display = "none";
+                }, 2000);
+            }
+
+            cantidadInput.value = 1;
+        }
+    </script>
+
+</body>
+
+</html>

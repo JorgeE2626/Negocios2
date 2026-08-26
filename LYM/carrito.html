@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMY Diseño e Impresión - Personaliza tus regalos y promocionales</title>
+    <link rel="stylesheet" href="Proyecto.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+
+</head>
+
+<body>
+
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>LMY</h1>
+                    <span>diseño e impresión</span>
+                </div>
+
+                <ul class="nav-menu">
+                    <li><a href="sistema.html">Inicio</a></li>
+                    <li><a href="sistema.html#productos">Productos</a></li>
+                    <li><a href="sistema.html#paquetes">Paquetes</a></li>
+                    <li><a href="sistema.html#contacto">Contacto</a></li>
+                </ul>
+
+                <div class="auth-buttons">
+                    <a href="sistema.html" class="btn btn-outline">Volver</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="page">
+        <div class="cart-wrap">
+
+            <div class="cart-header">
+                <div>
+                    <h1><i class="fas fa-shopping-cart"></i> Carrito</h1>
+                    <small>Vista: productos de ejemplo para validar diseño.</small>
+                </div>
+                <small id="itemsCount">0 artículos</small>
+            </div>
+
+            <div class="cart-grid">
+
+                <!-- Lista -->
+                <div class="cart-card">
+                    <div class="cart-items-header">
+                        <h2>Productos</h2>
+                        <small>Modifica cantidades (demo)</small>
+                    </div>
+
+                    <div class="cart-items" id="cartItems">
+
+                    </div>
+
+                    <div id="emptyState" class="empty" style="display:none;">
+                        Tu carrito está vacío.
+                    </div>
+                </div>
+
+                <!-- Resumen -->
+                <aside class="cart-card summary">
+                    <h2>Resumen</h2>
+
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotalTxt">$0</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Envío <small>(demo)</small></span>
+                        <span id="shippingTxt">$0</span>
+                    </div>
+
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="totalTxt">$0</span>
+                    </div>
+
+                    <div class="summary-actions">
+                        <a href="sistema.html" class="btn btn-outline btn-block">
+                            <i class="fas fa-arrow-left"></i> Seguir comprando
+                        </a>
+
+                        <a href="php/pago.php" class="btn btn-primary btn-block">
+                            <i class="fas fa-credit-card"></i> Continuar a pago
+                        </a>
+                    </div>
+
+                    <small style="display:block; margin-top:12px; color: var(--text-light);">
+
+                    </small>
+                </aside>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const contenedor = document.getElementById("cartItems");
+            const emptyState = document.getElementById("emptyState");
+            const subtotalTxt = document.getElementById("subtotalTxt");
+            const shippingTxt = document.getElementById("shippingTxt");
+            const totalTxt = document.getElementById("totalTxt");
+            const itemsCount = document.getElementById("itemsCount");
+
+            let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+            // Imagen por defecto si no viene guardada
+            const IMG_DEFAULT = "imagenes/default.png"; // <-- cambia a tu ruta real
+
+            // -------- FUNCION RENDER ----------
+            function renderCarrito() {
+
+                contenedor.innerHTML = "";
+
+                if (carrito.length === 0) {
+                    emptyState.style.display = "block";
+                    subtotalTxt.textContent = "$0";
+                    shippingTxt.textContent = "$0";
+                    totalTxt.textContent = "$0";
+                    itemsCount.textContent = "0 artículos";
+                    localStorage.setItem("carrito", JSON.stringify(carrito));
+                    return;
+                }
+
+                emptyState.style.display = "none";
+
+                let subtotal = 0;
+                let totalArticulos = 0;
+
+                carrito.forEach((item, index) => {
+
+                    const itemTotal = Number(item.precio) * Number(item.cantidad);
+                    subtotal += itemTotal;
+                    totalArticulos += Number(item.cantidad);
+
+                    const imgSrc = item.imagen && item.imagen.trim() ? item.imagen : IMG_DEFAULT;
+
+                    const card = document.createElement("div");
+                    card.className = "cart-item";
+
+                    card.innerHTML = `
+          <!-- IMAGEN -->
+          <div style="width:84px; height:84px; flex:0 0 84px; border-radius:12px; overflow:hidden; border:1px solid rgba(0,0,0,.08); background:#fff;">
+            <img 
+              src="${imgSrc}" 
+              alt="${item.producto}" 
+              style="width:100%; height:100%; object-fit:cover; display:block;"
+              onerror="this.onerror=null; this.src='${IMG_DEFAULT}';"
+            >
+          </div>
+
+          <!-- INFO -->
+          <div style="flex:1;">
+            <strong>${item.producto}</strong><br>
+            <small>${item.descripcion}</small><br>
+            <small>Precio: $${Number(item.precio).toFixed(2)}</small>
+          </div>
+
+          <!-- CANTIDAD -->
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button onclick="cambiarCantidad(${index}, -1)">−</button>
+            <span>${item.cantidad}</span>
+            <button onclick="cambiarCantidad(${index}, 1)">+</button>
+          </div>
+
+          <!-- TOTAL + QUITAR -->
+          <div style="width:110px; text-align:right;">
+            <strong>$${itemTotal.toFixed(2)}</strong><br>
+            <button onclick="eliminarItem(${index})" style="color:red; border:none; background:none; cursor:pointer;">
+              Quitar
+            </button>
+          </div>
+        `;
+
+                    contenedor.appendChild(card);
+                });
+
+                // envio demo
+                let envio = subtotal >= 500 ? 0 : 80;
+                let total = subtotal + envio;
+
+                subtotalTxt.textContent = "$" + subtotal.toFixed(2);
+                shippingTxt.textContent = "$" + envio.toFixed(2);
+                totalTxt.textContent = "$" + total.toFixed(2);
+                itemsCount.textContent = totalArticulos + (totalArticulos === 1 ? " artículo" : " artículos");
+
+                localStorage.setItem("carrito", JSON.stringify(carrito));
+                console.log("CARRITO:", carrito);
+                carrito.forEach((it, i) => console.log(i, it.producto, "imagen=", it.imagen));
+            }
+
+            // -------- CAMBIAR CANTIDAD ----------
+            window.cambiarCantidad = function (index, cambio) {
+                carrito[index].cantidad += cambio;
+
+                if (carrito[index].cantidad <= 0) {
+                    carrito.splice(index, 1);
+                }
+
+                renderCarrito();
+            }
+
+            // -------- ELIMINAR ----------
+            window.eliminarItem = function (index) {
+                carrito.splice(index, 1);
+                renderCarrito();
+            }
+
+            renderCarrito();
+        });
+    </script>
+</body>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Promociones</title>
+
+    <link rel="stylesheet" href="Proyecto.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* CONFIGURACIÓN GENERAL */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* BOTÓN REGRESAR */
+        .back-button {
+            margin-bottom: 25px;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .btn-back:hover {
+            color: #3498db;
+        }
+
+        /* CARD PRINCIPAL */
+        .producto-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .producto-container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        /* TÍTULO PRINCIPAL */
+        .grid-main-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .grid-main-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: #3498db;
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+
+        /* CUADRÍCULA DE IMÁGENES */
+        .producto-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .grid-item {
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid #eee;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .grid-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+        }
+
+        .grid-item img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .grid-item span {
+            display: block;
+            padding: 10px;
+            font-weight: 600;
+            background: #fafafa;
+        }
+
+        .grid-item h1 {
+            font-size: 0.9rem;
+            color: #3498db;
+            margin: 10px 0;
+            text-transform: uppercase;
+        }
+
+        /* --- NUEVA SECCIÓN DE CUPÓN --- */
+        .promo-section {
+            margin-top: 30px;
+            padding: 30px;
+            background-color: #fcfcfc;
+            border: 2px dashed #3498db;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .promo-section h2 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .promo-input-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .promo-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .promo-input:focus {
+            border-color: #3498db;
+        }
+
+        /* BOTONES */
+        .btn {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .producto-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .producto-grid { grid-template-columns: 1fr; }
+            .promo-input-group { flex-direction: column; }
+            .grid-item img { height: 220px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" style="padding-top:120px; padding-bottom:60px;">
+
+        <div class="back-button">
+            <a href="sistema.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Volver a la tienda
+            </a>
+        </div>
+
+        <div class="producto-card">
+            <div class="producto-container">
+
+                <div class="producto-images-grid-container">
+                    <h1 class="grid-main-title">Promociones Especiales</h1>
+                    
+                    <div class="producto-grid">
+                        <div class="grid-item">
+                            <img src="imagen/Playera_promoción.avif" alt="Playera">
+                            <span>Playera descuento 30%</span>
+                            <h1>Gsufhsk</h1>
+                        </div>
+                        <div class="grid-item">
+                            <img src="imagen/Promociones/2020-11-05-20-54-13-952_e5ad020c-87fc-4e7b-8f99-edcc16cf7b76.webp" alt="Tazas">
+                            <span>Tazas 2X1</span>
+                            <h1>Taeaf5x7</h1>
+                        </div>
+                        <div class="grid-item">
+                            <img src="imagen/Promociones/tapete.jpg" alt="Tapete">
+                            <span>Tapete descuento 10%</span>
+                            <h1>TA9EJ3467G</h1>
+                        </div>
+                        <div class="grid-item">
+                            <img src="imagen/Promociones/Bolsa.jpg" alt="Bolsa">
+                            <span>Bolsa descuento 15%</span>
+                            <h1>B0LTNB4</h1>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="promo-section">
+                    <h2>¿Tienes un código de promoción?</h2>
+                    <p>Ingresa tu código aquí abajo para obtener beneficios exclusivos.</p>
+                    <div class="promo-input-group">
+                        <input type="text" id="cuponTexto" class="promo-input" placeholder="Ej: B0LTNB4" onkeydown="verificarEnter(event)">
+                        <button class="btn btn-primary" onclick="aplicarPromocion()">
+                            <i class="fas fa-gift"></i> Aplicar Promoción
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Función para mostrar la ventana de promoción aplicada
+        function aplicarPromocion() {
+            const input = document.getElementById('cuponTexto');
+            const codigo = input.value.trim();
+
+            if (codigo !== "") {
+                // Ventana emergente (alert)
+                alert("¡Promoción aplicada con éxito! Código: " + codigo.toUpperCase());
+                
+                // Limpiar el campo después de aplicar
+                input.value = "";
+            } else {
+                alert("Por favor, escribe un código antes de aplicar.");
+            }
+        }
+
+        // Función para detectar cuando se presiona la tecla Enter
+        function verificarEnter(event) {
+            if (event.key === "Enter") {
+                aplicarPromocion();
+            }
+        }
+    </script>
+
+</body>
+</html>

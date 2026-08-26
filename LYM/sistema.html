@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LMY Diseño e Impresión - Personaliza tus regalos y promocionales</title>
+
+    <link rel="stylesheet" href="Proyecto.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body>
+    <!-- Banner de notificación -->
+    <div id="successBanner" class="success-banner">✔ Operación exitosa</div>
+
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>LMY</h1>
+                    <span>diseño e impresión</span>
+                </div>
+
+                <ul class="nav-menu">
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#productos">Productos</a></li>
+                    <li><a href="#paquetes">Paquetes</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                    <li><a href="#ticket">Tickets</a></li>
+                    <li><a href="#nosotros">Nosotros</a></li>
+                    <li><a href="Promociones.html">Promociones</a></li>
+                </ul>
+
+                <div class="auth-buttons">
+                    <!-- BOTONES INVITADO -->
+                    <div id="guestButtons">
+                        <button type="button" class="btn btn-outline" onclick="showLoginModal()">Iniciar Sesión</button>
+                        <button type="button" class="btn btn-primary" onclick="showRegisterModal()">Registrarse</button>
+                        <button type="button" class="btn btn-outline" onclick="showAdminModal()">Intranet</button>
+                    </div>
+
+                    <!-- MENÚ USUARIO -->
+                    <div class="user-menu" id="userMenu" style="display:none; position:relative;">
+                        <button type="button" class="btn btn-outline user-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                            <span id="userGreeting">Usuario</span>
+                            <i class="fas fa-bars"></i>
+                        </button>
+
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="carrito.html" class="dropdown-item">
+                                <i class="fas fa-box"></i> Mis compras
+                            </a>
+
+                            <a href="perfil.html" class="dropdown-item">
+                                <i class="fas fa-id-card"></i> Información
+                            </a>
+
+                            <div class="dropdown-divider"></div>
+
+                            <button type="button" class="dropdown-item logout-btn" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="hamburger">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <a href="carrito.html" class="btn btn-outline btn-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-text">Carrito</span>
+                    <span class="cart-badge" id="cartBadge">0</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- BOTÓN FLOTANTE BÚSQUEDA -->
+    <div class="search-floating">
+        <button id="btnSearch" class="search-btn" aria-label="Abrir opciones de búsqueda" type="button">
+            <i class="fas fa-search"></i>
+        </button>
+
+        <div id="searchMenu" class="search-menu" role="menu" aria-hidden="true">
+            <div class="search-title">Opciones de búsqueda</div>
+
+            <button class="menu-option" type="button">
+                <i class="fas fa-dollar-sign"></i>
+                Buscar por precio
+            </button>
+
+            <button class="menu-option" type="button">
+                <i class="fas fa-sort-alpha-down"></i>
+                Buscar por abecedario
+            </button>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Personaliza tus regalos y promocionales</h1>
+            <p class="hero-subtitle">
+                Diseños únicos para tazas, sudaderas, tapetes, uniformes y más. Calidad profesional con tu toque
+                personal.
+            </p>
+            <div class="hero-buttons">
+                <a href="#productos" class="btn btn-primary">Ver Productos</a>
+                <a href="#contacto" class="btn btn-secondary">Cotizar Ahora</a>
+            </div>
+        </div>
+
+        <div class="hero-image">
+            <div class="floating-card">
+                <i class="fas fa-mug-hot"></i>
+                <span>Tazas Personalizadas</span>
+            </div>
+            <div class="floating-card">
+                <i class="fas fa-tshirt"></i>
+                <span>Sudaderas</span>
+            </div>
+            <div class="floating-card">
+                <i class="fas fa-home"></i>
+                <span>Tapetes</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Productos Section -->
+    <section id="productos" class="productos">
+        <div class="container">
+            <h2 class="section-title">Nuestros Productos</h2>
+            <p class="section-subtitle">Descubre nuestra amplia gama de productos personalizables</p>
+
+            <div class="productos-grid">
+                <!-- Tazas -->
+                <div class="producto-card">
+                    <div class="producto-image">
+                        <i class="fas fa-mug-hot"></i>
+                        <div class="producto-overlay">
+                            <span class="precio">Desde $85</span>
+                        </div>
+                    </div>
+                    <div class="producto-content">
+                        <h3>Tazas Personalizadas</h3>
+                    </div>
+                    <div class="btn-producto">
+                        <a href="tazas.html" class="btn-producto">Seleccionar</a>
+                    </div>
+                </div>
+
+                <!-- Tapetes -->
+                <div class="producto-card">
+                    <div class="producto-image">
+                        <i class="fas fa-home"></i>
+                        <div class="producto-overlay">
+                            <span class="precio">$300</span>
+                        </div>
+                    </div>
+                    <div class="producto-content">
+                        <h3>Tapete Afelpado</h3>
+                    </div>
+                    <div class="btn-producto">
+                        <a href="tapetes.html" class="btn-producto">Seleccionar</a>
+                    </div>
+                </div>
+
+                <!-- Sudaderas -->
+                <div class="producto-card">
+                    <div class="producto-image">
+                        <i class="fas fa-tshirt"></i>
+                        <div class="producto-overlay">
+                            <span class="precio">Desde $425</span>
+                        </div>
+                    </div>
+                    <div class="producto-content">
+                        <h3>Sudaderas</h3>
+                    </div>
+                    <div class="btn-producto">
+                        <a href="sudaderas.html" class="btn-producto">Seleccionar</a>
+                    </div>
+                </div>
+
+                <!-- Uniformes -->
+                <div class="producto-card">
+                    <div class="producto-image">
+                        <i class="fas fa-user-tie"></i>
+                        <div class="producto-overlay">
+                            <span class="precio">Desde $195</span>
+                        </div>
+                    </div>
+                    <div class="producto-content">
+                        <h3>Camisas Uniforme</h3>
+                    </div>
+                    <div class="btn-producto">
+                        <a href="uniformes.html" class="btn-producto">Seleccionar</a>
+                    </div>
+                </div>
+
+                <!-- Termos -->
+                <div class="producto-card">
+                    <div class="producto-image">
+                        <i class="fas fa-thermometer-half"></i>
+                        <div class="producto-overlay">
+                            <span class="precio">Desde $180</span>
+                        </div>
+                    </div>
+                    <div class="producto-content">
+                        <h3>Termos Personalizados</h3>
+                    </div>
+                    <div class="btn-producto">
+                        <a href="termos.html" class="btn-producto">Seleccionar</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Paquetes Section -->
+    <section id="paquetes" class="paquetes">
+        <div class="container">
+            <h2 class="section-title">Paquetes Especiales</h2>
+            <p class="section-subtitle">Combos diseñados para diferentes ocasiones</p>
+
+            <div class="paquetes-grid">
+                <!-- Paquete Básico -->
+                <a href="basico.html" class="paquete-link">
+                    <div class="paquete-card">
+                        <div class="paquete-header">
+                            <h3>Paquete Básico</h3>
+                            <div class="precio-paquete">$250</div>
+                        </div>
+                        <div class="paquete-content">
+                            <ul>
+                                <li>1 Taza estándar</li>
+                                <li>1 Llavero de acero con impresión frente y vuelta</li>
+                                <li>1 Rompecabezas tamaño carta</li>
+                                <li>Diseño personalizado a tu elección</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Paquete Viajero -->
+                <a href="viajero.html" class="paquete-link">
+                    <div class="paquete-card featured">
+                        <span class="nuevo-badge">Más vendido</span>
+                        <div class="paquete-header">
+                            <h3>Paquete Viajero</h3>
+                            <div class="precio-paquete">$320</div>
+                        </div>
+                        <div class="paquete-content">
+                            <ul>
+                                <li>1 Bolsa ecológica chica</li>
+                                <li>2 Llaveros de acero con impresión frente y vuelta</li>
+                                <li>1 Cojín 20 x 30 cm</li>
+                                <li>Diseño personalizado a tu elección</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Paquete Deportivo -->
+                <a href="deportivo.html" class="paquete-link">
+                    <div class="paquete-card">
+                        <div class="paquete-header">
+                            <h3>Paquete Deportivo</h3>
+                            <div class="precio-paquete">$575</div>
+                        </div>
+                        <div class="paquete-content">
+                            <ul>
+                                <li>1 Playera deportiva Dryfit impresa al frente</li>
+                                <li>1 Gorra combinada (color a elegir)</li>
+                                <li>1 Vaso alto de acero (blanco o plata)</li>
+                                <li>Diseño personalizado a tu elección</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Paquete Potterhead -->
+                <a href="potterhead.html" class="paquete-link">
+                    <div class="paquete-card">
+                        <div class="paquete-header">
+                            <h3>Paquete Potterhead</h3>
+                            <div class="precio-paquete">$635</div>
+                        </div>
+                        <div class="paquete-content">
+                            <ul>
+                                <li>1 Playera deportiva Dryfit con diseño de Quidditch</li>
+                                <li>1 Termo cafetero con asa y escudo de Hogwarts</li>
+                                <li>1 Llavero de acero con impresión frente y vuelta</li>
+                                <li>Diseño de tu casa de Hogwarts y fecha de cumpleaños</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Paquete Estudiante -->
+                <a href="estudiante.html" class="paquete-link">
+                    <div class="paquete-card nuevo">
+                        <span class="popular-badge">Nuevo</span>
+                        <div class="paquete-header">
+                            <h3>Paquete Estudiante</h3>
+                            <div class="precio-paquete">$520</div>
+                        </div>
+                        <div class="paquete-content">
+                            <ul>
+                                <li>1 Termo plástico personalizado</li>
+                                <li>1 Camisa personalizada (nombre o logotipo)</li>
+                                <li>1 Sudadera personalizada</li>
+                                <li>1 Llavero de acero personalizado</li>
+                            </ul>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Promoción Section -->
+    <section class="promocion">
+        <div class="container">
+            <div class="promocion-content">
+                <div class="promocion-text">
+                    <h2>¡Oferta Especial!</h2>
+                    <p>Después de 20 piezas iguales tendrás un <strong>10% de descuento</strong></p>
+                    <small>*Pago en una sola exhibición</small>
+                </div>
+                <div class="promocion-image">
+                    <i class="fas fa-percentage"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ticket / Facturación Section -->
+    <section id="ticket" class="contacto">
+        <div class="container">
+            <h2 class="section-title">Solicitud de Factura</h2>
+            <p class="section-subtitle">Genera tu ticket para facturación de forma rápida y sencilla</p>
+
+            <div class="contacto-grid">
+                <!-- Información -->
+                <div class="contacto-info">
+                    <div class="contacto-item">
+                        <i class="fas fa-receipt"></i>
+                        <div>
+                            <h3>Facturación</h3>
+                            <p>Llena el formulario con tus datos fiscales</p>
+                            <p>Recibirás tu factura por correo</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulario Ticket -->
+                <div class="contacto-form">
+                    <form id="ticketForm">
+                        <div class="form-group">
+                            <input type="text" id="razon" placeholder="Razón social" required>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="text" id="rfc" placeholder="RFC" required>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="email" id="correo" placeholder="Correo para factura" required>
+                        </div>
+
+                        <div class="form-group">
+                            <select id="cfdi" required>
+                                <option value="">Uso de CFDI</option>
+                                <option value="G01">G01 - Adquisición de mercancías</option>
+                                <option value="G03">G03 - Gastos en general</option>
+                                <option value="P01">P01 - Por definir</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="text" id="folio" placeholder="Folio / Número de ticket" required>
+                        </div>
+
+                        <div class="form-group">
+                            <textarea id="detalle" placeholder="Detalles adicionales (opcional)" rows="4"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Enviar Ticket de Factura</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Nosotros -->
+    <section id="nosotros" class="contacto">
+        <div class="container">
+            <h2 class="section-title">Nosotros</h2>
+
+            <div style="display:flex; gap:30px; justify-content:space-between; flex-wrap:wrap;">
+                <div style="flex:1; min-width:300px;">
+                    <p class="section-subtitle" style="text-align:center;">Misión</p>
+                    <p style="text-align:justify; line-height:1.6;">
+                        Brindar servicios de diseño, sublimación e impresión personalizada de alta calidad a precios
+                        accesibles, ofreciendo a nuestros clientes productos únicos que les permitan expresar ideas,
+                        emociones o identidad en artículos de uso cotidiano. Nos comprometemos a entregar atención
+                        cercana, tiempos de respuesta rápidos y resultados duraderos que generen confianza y
+                        satisfacción.
+                    </p>
+                </div>
+
+                <div style="flex:1; min-width:300px;">
+                    <p class="section-subtitle" style="text-align:center;">Visión</p>
+                    <p style="text-align:justify; line-height:1.6;">
+                        Ser un negocio reconocido a nivel local por la calidad de nuestros trabajos, la accesibilidad de
+                        nuestros precios y la confianza de nuestros clientes, consolidándonos como la primera opción en
+                        productos personalizados y promocionales. Buscamos crecer de manera constante, incorporando
+                        nuevos productos, técnicas de impresión y herramientas digitales que mejoren la experiencia de
+                        compra.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Contacto Section -->
+    <section id="contacto" class="contacto">
+        <div class="container">
+            <h2 class="section-title">Contáctanos</h2>
+            <p class="section-subtitle">¿Listo para personalizar tus productos? ¡Hablemos!</p>
+
+            <div class="contacto-grid">
+                <div class="contacto-info">
+                    <div class="contacto-item">
+                        <i class="fab fa-whatsapp"></i>
+                        <div>
+                            <h3>WhatsApp</h3>
+                            <p>449-362-0191</p>
+                            <a class="btn btn-whatsapp" href="#" id="btnWhats">
+                                <i class="fab fa-whatsapp"></i>
+                                Enviar mensaje
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="contacto-item">
+                        <i class="fab fa-instagram"></i>
+                        <div>
+                            <h3>Instagram</h3>
+                            <p>@LYMdiseno</p>
+                            <a class="btn btn-instagram" href="#" id="btnInsta">Seguir</a>
+                        </div>
+                    </div>
+
+                    <div class="contacto-item">
+                        <i class="fab fa-facebook"></i>
+                        <div>
+                            <h3>Facebook</h3>
+                            <p>Lym Mon</p>
+                            <a class="btn btn-facebook" href="#" id="btnFace">
+                                <i class="fab fa-facebook"></i>
+                                Visitar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contacto-form">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" id="nombre" placeholder="Tu nombre" required>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="email" id="email" placeholder="Tu email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <select id="producto" required>
+                                <option value="">Selecciona un producto</option>
+                                <option value="tazas">Tazas Personalizadas</option>
+                                <option value="tapetes">Tapetes Afelpados</option>
+                                <option value="sudaderas">Sudaderas</option>
+                                <option value="uniformes">Camisas de Uniforme</option>
+                                <option value="paquetes">Paquetes Especiales</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <textarea id="mensaje" placeholder="Describe tu proyecto..." rows="4" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Enviar</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3>LYM</h3>
+                    <span>diseño e impresión</span>
+                    <p>Personaliza tus regalos y promocionales</p>
+                </div>
+
+                <div class="footer-links">
+                    <h4>Enlaces</h4>
+                    <ul>
+                        <li><a href="#inicio">Inicio</a></li>
+                        <li><a href="#productos">Productos</a></li>
+                        <li><a href="#paquetes">Paquetes</a></li>
+                        <li><a href="#contacto">Contacto</a></li>
+                        <li><a href="#ticket">Ticket</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-contact">
+                    <h4>Contacto</h4>
+                    <p><i class="fab fa-whatsapp"></i> 449-362-0191</p>
+                    <p><i class="fab fa-instagram"></i> @LYMdiseno</p>
+                    <p><i class="fab fa-facebook"></i> LYM Mon</p>
+                </div>
+            </div>
+
+            <div class="footer-map">
+                <p><i class="fas fa-map-marker-alt"></i> Av. Creativa #245, Col. Centro, Aguascalientes, MX</p>
+                <img src="imagen/mapa.jpeg" alt="Mapa de ubicación LYM"
+                    style="width:260px; height:150px; object-fit:cover; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.2); pointer-events:none;">
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 LYM Diseño e Impresión. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Login -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Iniciar Sesión</h2>
+                <span class="close" onclick="closeModal('loginModal')">&times;</span>
+            </div>
+
+            <form onsubmit="login(event)">
+                <div class="form-group">
+                    <label for="loginUsername">Usuario o Email:</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña:</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('loginModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Registro -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Registrarse</h2>
+                <span class="close" onclick="closeModal('registerModal')">&times;</span>
+            </div>
+
+            <form onsubmit="register(event)">
+                <div class="form-group">
+                    <label for="registerUsername">Nombre de Usuario:</label>
+                    <input type="text" id="registerUsername" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerEmail">Email:</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerPassword">Contraseña:</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerConfirmPassword">Confirmar Contraseña:</label>
+                    <input type="password" id="registerConfirmPassword" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Registrarse</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('registerModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Admin / Intranet -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Intranet</h2>
+                <span class="close" onclick="closeModal('adminModal')">&times;</span>
+            </div>
+
+            <form onsubmit="adminLogin(event)">
+                <div class="form-group">
+                    <label for="adminUsername">Usuario o Email:</label>
+                    <input type="text" id="adminUsername" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="adminPassword">Contraseña:</label>
+                    <input type="password" id="adminPassword" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('adminModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ========= Banner =========
+        function showSuccessBanner(texto = "Operación exitosa") {
+            const banner = document.getElementById("successBanner");
+            if (!banner) return;
+            banner.innerHTML = "✔ " + texto;
+            banner.classList.add("show");
+            setTimeout(() => banner.classList.remove("show"), 3000);
+        }
+
+        // ========= Mobile menu toggle =========
+        const hamburger = document.querySelector(".hamburger");
+        const navMenu = document.querySelector(".nav-menu");
+        if (hamburger && navMenu) {
+            hamburger.addEventListener("click", () => {
+                hamburger.classList.toggle("active");
+                navMenu.classList.toggle("active");
+            });
+
+            document.querySelectorAll(".nav-menu a").forEach(link => {
+                link.addEventListener("click", () => {
+                    hamburger.classList.remove("active");
+                    navMenu.classList.remove("active");
+                });
+            });
+        }
+
+        // Smooth scrolling
+        document.querySelectorAll("a[href^=\"#\"]").forEach(anchor => {
+            anchor.addEventListener("click", function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute("href"));
+                if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        });
+
+        // Header background on scroll
+        window.addEventListener("scroll", () => {
+            const header = document.querySelector(".header");
+            if (!header) return;
+            if (window.scrollY > 100) {
+                header.style.background = "rgba(255, 255, 255, 0.98)";
+                header.style.boxShadow = "0 2px 20px rgba(0, 0, 0, 0.1)";
+            } else {
+                header.style.background = "rgba(255, 255, 255, 0.95)";
+                header.style.boxShadow = "none";
+            }
+        });
+
+        // ========= Search floating menu =========
+        document.addEventListener("DOMContentLoaded", () => {
+            const btnSearch = document.getElementById("btnSearch");
+            const searchMenu = document.getElementById("searchMenu");
+            if (!btnSearch || !searchMenu) return;
+
+            const openMenu = () => {
+                searchMenu.classList.add("active");
+                searchMenu.setAttribute("aria-hidden", "false");
+            };
+            const closeMenu = () => {
+                searchMenu.classList.remove("active");
+                searchMenu.setAttribute("aria-hidden", "true");
+            };
+            const toggleMenu = () => {
+                const isOpen = searchMenu.classList.contains("active");
+                isOpen ? closeMenu() : openMenu();
+            };
+
+            btnSearch.addEventListener("click", (e) => { e.stopPropagation(); toggleMenu(); });
+            searchMenu.addEventListener("click", (e) => e.stopPropagation());
+            document.addEventListener("click", () => closeMenu());
+            document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
+        });
+
+        // ========= Modales =========
+        function showLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
+        function showRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
+        function showAdminModal() { document.getElementById('adminModal').style.display = 'flex'; }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) m.style.display = 'none';
+        }
+
+        // Cerrar modal al click afuera
+        window.addEventListener("click", (e) => {
+            document.querySelectorAll(".modal").forEach(modal => {
+                if (e.target === modal) modal.style.display = "none";
+            });
+        });
+
+        // ========= Sistema de autenticación (SIMULADO) =========
+        let currentUser = null;
+
+        function updateUIForLoggedInUser() {
+            document.getElementById('guestButtons').style.display = 'none';
+            document.getElementById('userMenu').style.display = 'flex';
+            document.getElementById('userGreeting').textContent = currentUser.username || "Usuario";
+        }
+
+        function updateUIForLoggedOutUser() {
+            document.getElementById('guestButtons').style.display = 'flex';
+            document.getElementById('userMenu').style.display = 'none';
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            updateUIForLoggedOutUser();
+        });
+
+        async function login(event) {
+            event.preventDefault();
+            showSuccessBanner("Inicio exitoso");
+            closeModal('loginModal');
+
+            currentUser = {
+                username: document.getElementById('loginUsername').value || "Cliente",
+                role: "user"
+            };
+
+            updateUIForLoggedInUser();
+        }
+
+        async function register(event) {
+            event.preventDefault();
+
+            const p1 = document.getElementById('registerPassword').value;
+            const p2 = document.getElementById('registerConfirmPassword').value;
+
+            if (p1 !== p2) {
+                showSuccessBanner("Las contraseñas no coinciden");
+                return;
+            }
+
+            showSuccessBanner("Registro exitoso");
+            closeModal('registerModal');
+
+            setTimeout(() => { showLoginModal(); }, 800);
+        }
+
+        async function adminLogin(event) {
+            event.preventDefault();
+
+            showSuccessBanner("Bienvenido a Intranet");
+            closeModal('adminModal');
+
+            currentUser = {
+                username: document.getElementById('adminUsername').value || "Admin",
+                role: "admin"
+            };
+
+            updateUIForLoggedInUser();
+
+            // REDIRECCIÓN A INTRANET
+            setTimeout(() => {
+                window.location.href = "admin.html";
+            }, 800);
+        }
+
+        // ========= Dropdown usuario =========
+        function toggleUserMenu(e) {
+            e.stopPropagation();
+            document.getElementById("userDropdown").classList.toggle("show-dropdown");
+        }
+
+        document.addEventListener("click", function (e) {
+            const dropdown = document.getElementById("userDropdown");
+            const btn = document.querySelector(".user-btn");
+            if (!dropdown || !btn) return;
+            if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.remove("show-dropdown");
+            }
+        });
+
+        document.querySelectorAll("#userDropdown a").forEach(link => {
+            link.addEventListener("click", () => {
+                document.getElementById("userDropdown").classList.remove("show-dropdown");
+            });
+        });
+
+        // ========= Ticket (mailto) =========
+        document.addEventListener("DOMContentLoaded", () => {
+            const ticketForm = document.getElementById("ticketForm");
+            if (!ticketForm) return;
+
+            ticketForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                const razon = document.getElementById("razon").value;
+                const rfc = document.getElementById("rfc").value;
+                const correo = document.getElementById("correo").value;
+                const cfdi = document.getElementById("cfdi").value;
+                const folio = document.getElementById("folio").value;
+                const detalle = document.getElementById("detalle").value;
+
+                const subject = `Solicitud de Factura | Ticket ${folio}`;
+                const body =
+                    `Solicitud de Facturación\n\n` +
+                    `Razón Social: ${razon}\n` +
+                    `RFC: ${rfc}\n` +
+                    `Correo: ${correo}\n` +
+                    `Uso de CFDI: ${cfdi}\n` +
+                    `Folio / Ticket: ${folio}\n\n` +
+                    `Detalles:\n${detalle}`;
+
+                // ⚠️ Cambia este correo por el tuyo:
+                const mailtoLink = `mailto:TU_CORREO@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+                showSuccessBanner("Ticket listo para enviar");
+                window.location.href = mailtoLink;
+            });
+        });
+
+        // ========= Contacto (simulado con banner + reset) =========
+        document.addEventListener("DOMContentLoaded", () => {
+            const contactForm = document.getElementById("contactForm");
+            if (!contactForm) return;
+
+            contactForm.addEventListener("submit", (event) => {
+                event.preventDefault();
+                showSuccessBanner("Mensaje enviado");
+                contactForm.reset();
+            });
+        });
+
+        // ========= Efectos del segundo (sin romper nada) =========
+
+        // Intersection Observer para animaciones
+        const observerOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = "1";
+                    entry.target.style.transform = "translateY(0)";
+                }
+            });
+        }, observerOptions);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const animatedElements = document.querySelectorAll(".producto-card, .paquete-card, .contacto-item");
+            animatedElements.forEach(el => {
+                el.style.opacity = "0";
+                el.style.transform = "translateY(30px)";
+                el.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+                observer.observe(el);
+            });
+        });
+
+        // Parallax hero
+        window.addEventListener("scroll", () => {
+            const scrolled = window.pageYOffset;
+            const parallaxElements = document.querySelectorAll(".floating-card");
+            parallaxElements.forEach((element, index) => {
+                const speed = 0.5 + (index * 0.1);
+                element.style.transform = `translateY(${scrolled * speed}px)`;
+            });
+        });
+
+        // Hover effects
+        document.querySelectorAll(".producto-card, .paquete-card").forEach(card => {
+            card.addEventListener("mouseenter", function () {
+                this.style.transform = "translateY(-10px) scale(1.02)";
+            });
+            card.addEventListener("mouseleave", function () {
+                this.style.transform = "translateY(0) scale(1)";
+            });
+        });
+
+        // Ripple effect + loading
+        function createRipple(event) {
+            const button = event.currentTarget;
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - button.offsetLeft - radius}px`;
+            circle.style.top = `${event.clientY - button.offsetTop - radius}px`;
+            circle.classList.add("ripple");
+
+            const ripple = button.getElementsByClassName("ripple")[0];
+            if (ripple) ripple.remove();
+
+            button.appendChild(circle);
+        }
+
+        document.querySelectorAll(".btn, .btn-producto").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                createRipple(e);
+                if (!btn.classList.contains("loading")) {
+                    btn.classList.add("loading");
+                    setTimeout(() => btn.classList.remove("loading"), 700);
+                }
+            });
+        });
+
+        const style = document.createElement("style");
+        style.textContent = `
+            .btn, .btn-producto { position: relative; overflow: hidden; }
+            .ripple {
+                position: absolute;
+                border-radius: 50%;
+                background-color: rgba(255, 255, 255, 0.6);
+                transform: scale(0);
+                animation: ripple-animation 0.6s linear;
+                pointer-events: none;
+            }
+            @keyframes ripple-animation { to { transform: scale(4); opacity: 0; } }
+            .loading { pointer-events: none; opacity: 0.85; }
+        `;
+        document.head.appendChild(style);
+
+        // (Opcional) Links sociales - pon tus URLs reales
+        document.addEventListener("DOMContentLoaded", () => {
+            const btnWhats = document.getElementById("btnWhats");
+            const btnInsta = document.getElementById("btnInsta");
+            const btnFace = document.getElementById("btnFace");
+
+            if (btnWhats) btnWhats.addEventListener("click", (e) => {
+                e.preventDefault();
+                const msg = encodeURIComponent("Hola! Me interesa una cotización 🙌");
+                // window.open(`https://wa.me/524493620191?text=${msg}`, "_blank");
+                showSuccessBanner("Configura tu link de WhatsApp");
+            });
+
+            if (btnInsta) btnInsta.addEventListener("click", (e) => {
+                e.preventDefault();
+                // window.open("https://instagram.com/TU_USUARIO", "_blank");
+                showSuccessBanner("Configura tu link de Instagram");
+            });
+
+            if (btnFace) btnFace.addEventListener("click", (e) => {
+                e.preventDefault();
+                // window.open("https://facebook.com/TU_PAGINA", "_blank");
+                showSuccessBanner("Configura tu link de Facebook");
+            });
+        });
+    </script>
+
+</body>
+
+</html>

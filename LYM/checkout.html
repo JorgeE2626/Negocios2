@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Finalizar Compra | LMY</title>
+    <link rel="stylesheet" href="Proyecto.css">
+    <script src="https://www.paypal.com/sdk/js?client-id=TU_CLIENT_ID&currency=MXN"></script>
+</head>
+<body>
+    <div class="container" style="padding: 50px; text-align: center;">
+        <h2>Resumen de tu Pedido</h2>
+        <div id="resumen-pago" style="margin-bottom: 20px;">
+            </div>
+        
+        <div id="paypal-button-container" style="max-width: 400px; margin: 0 auto;"></div>
+    </div>
+
+    <script>
+        // 1. Obtener datos del carrito
+        const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+        const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+
+        // 2. Mostrar el total al usuario
+        document.getElementById('resumen-pago').innerHTML = `<h3>Total a pagar: $${total} MXN</h3>`;
+
+        // 3. Configurar PayPal
+        paypal.Buttons({
+            style: {
+                layout: 'vertical',
+                color:  'blue',
+                shape:  'rect',
+                label:  'pay'
+            },
+            createOrder: function(data, actions) {
+                if (total <= 0) {
+                    alert("El carrito está vacío");
+                    return;
+                }
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: total.toString() // IMPORTANTE: Debe ser string
+                        },
+                        description: "Compra en LMY Store"
+                    }]
+                });
+            },
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(orderData) {
+                    console.log('Resultado de captura', orderData);
+                    alert('¡Gracias por tu compra, ' + orderData.payer.name.given_name + '!');
+                    localStorage.removeItem("carrito"); 
+                    window.location.href = "index.html"; // Redirigir al inicio
+                });
+            },
+            onError: function (err) {
+                console.error('Error en PayPal:', err);
+                alert('Hubo un error con el pago. Revisa la consola para más detalles.');
+            }
+        }).render('#paypal-button-container');
+    </script>
+</body>
+</html>

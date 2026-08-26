@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Uniformes | LMY</title>
+
+    <link rel="stylesheet" href="Proyecto.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="container" style="padding-top:120px; padding-bottom:60px;">
+
+        <!-- Botón regresar -->
+        <div class="back-button">
+            <a href="sistema.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Volver a la tienda
+            </a>
+        </div>
+        <div class="producto-card">
+            <div class="producto-container">
+
+                <!-- Imagen -->
+                <div class="producto-image">
+                    <img src="imagen/uniforme.jpg" alt="Uniforme personalizado" style="width:220px;">
+                    <div class="producto-overlay">
+                        <span class="precio">Desde $195</span>
+                    </div>
+                </div>
+
+                <!-- Información -->
+                <div class="producto-content">
+                    <h3>Camisas de Uniforme Personalizadas</h3>
+
+                    <ul class="producto-features">
+                        <li><i class="fas fa-check"></i> Camisa tipo polo o gabardina</li>
+                        <li><i class="fas fa-check"></i> Bordado o impresión DTF</li>
+                        <li><i class="fas fa-check"></i> Ideal para negocios, escuelas y equipos</li>
+                        <li><i class="fas fa-check"></i> Tallas: CH, M, G, XL, XXL</li>
+                        <li><i class="fas fa-check"></i> Colores variados a elegir</li>
+                        <li><i class="fas fa-check"></i> Personalización con logotipo o nombre</li>
+                    </ul>
+
+
+                    <h4>Selecciona el tipo de uniforme:</h4>
+
+
+                    <select class="select-producto" id="opcionesProducto" data-producto="Uniforme personalizado"
+                        data-mensaje="mensajeAgregado">
+                        <option value="195">Camisa básica estampada - $195</option>
+                        <option value="250">Camisa bordada premium - $250</option>
+                        <option value="320">Camisa ejecutiva gabardina - $320</option>
+                    </select>
+
+                    <label for="cantidadProducto">Cantidad:</label>
+                    <input type="number" id="cantidadProducto" min="1" max="100" value="1">
+                    <br><br>
+
+                    <!-- Botón -->
+                    <div class="producto-actions" style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="agregarCarritoDesdeSelect('opcionesProducto')">
+                            <i class="fas fa-cart-plus"></i> Agregar al carrito
+                        </button>
+
+                        <a href="carrito.html" class="btn btn-outline">
+                            <i class="fas fa-shopping-cart"></i> Ver carrito
+                        </a>
+                        <a href="prodrelacionados .html" class="btn btn-outline">
+                            Productos relacionados
+                        </a>
+                    </div>
+
+                    <p id="mensajeAgregado" class="success-mini" style="display:none;">
+                        ✔ Producto agregado al carrito
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function agregarCarritoDesdeSelect(selectId) {
+            const select = document.getElementById(selectId);
+
+            const producto = select.dataset.producto;
+            const mensajeId = select.dataset.mensaje;
+            const imagen = select.dataset.imagen;
+
+            const descripcion = select.options[select.selectedIndex].text;
+            const precio = Number(select.value);
+
+            let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+            const existente = carrito.find(item =>
+                item.producto === producto && item.descripcion === descripcion
+            );
+
+            if (existente) {
+                existente.cantidad += 1;
+
+                // opcional: si antes no tenía imagen, se la asignas
+                if (!existente.imagen) existente.imagen = imagen;
+            } else {
+                carrito.push({
+                    producto,
+                    descripcion,
+                    precio,
+                    imagen,      // ✅ GUARDADA
+                    cantidad: 1
+                });
+            }
+
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+
+            const msg = document.getElementById(mensajeId);
+            msg.style.display = "block";
+
+            setTimeout(() => {
+                msg.style.display = "none";
+            }, 2000);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Tarjeta - Centrado</title>
+
+     <link rel="stylesheet" href="Proyecto.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        :root {
+            --ml-blue: #3483fa;
+            --ml-bg: #ebebeb;
+            --ml-text-dark: #333;
+            --ml-text-light: #666;
+            --border-color: #ddd;
+        }
+
+        /* CONFIGURACIÓN PARA CENTRAR TODO */
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--ml-bg);
+            margin: 0;
+            color: var(--ml-text-dark);
+            
+            /* Flexbox mágico */
+            display: flex;
+            justify-content: center; /* Centra horizontal */
+            align-items: center;     /* Centra vertical */
+            min-height: 100vh;       /* Usa todo el alto de la pantalla */
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 900px; /* Reduje un poco el ancho para que se vea mejor centrado */
+            padding: 20px;
+        }
+
+        .card-container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        h1 { font-size: 24px; margin-bottom: 30px; }
+        
+        .tab-title { 
+            font-size: 16px; 
+            font-weight: bold; 
+            padding-bottom: 10px; 
+            border-bottom: 2px solid var(--ml-blue);
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+
+        .form-content {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap; /* Para que en móviles se ponga uno debajo de otro */
+        }
+
+        .inputs-side { flex: 1; min-width: 300px; }
+        .visual-side { 
+            flex: 1; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .form-group { margin-bottom: 25px; }
+        label { display: block; font-size: 14px; color: var(--ml-text-light); margin-bottom: 8px; }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        input:focus { border-color: var(--ml-blue); }
+
+        .row { display: flex; gap: 15px; }
+
+        /* Ilustración de Tarjeta */
+        .card-mockup {
+            width: 300px;
+            height: 180px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            position: relative;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #b0b0b0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .card-mockup .chip { width: 35px; height: 25px; background: #cfcfcf; border-radius: 4px; margin-bottom: 30px; }
+        .card-mockup .card-number { font-size: 18px; letter-spacing: 2px; }
+        .card-mockup .circle { 
+            position: absolute; bottom: 20px; right: 20px; 
+            width: 45px; height: 45px; background: #cfcfcf; border-radius: 50%; 
+        }
+
+        .button-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn-continue {
+            background-color: var(--ml-blue);
+            color: white;
+            border: none;
+            padding: 12px 48px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-continue:hover {
+            background-color: #2968c8;
+        }
+
+    </style>
+</head>
+<!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>LMY</h1>
+                    <span>diseño e impresión</span>
+                </div>
+
+                <ul class="nav-menu">
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#productos">Productos</a></li>
+                    <li><a href="#paquetes">Paquetes</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                    <li><a href="#ticket">Tickets</a></li>
+                    <li><a href="#nosotros">Nosotros</a></li>
+                    <li><a href="Promociones.html">Promociones</a></li>
+                </ul>
+
+                <div class="auth-buttons">
+                    <!-- BOTONES INVITADO -->
+                    <div id="guestButtons">
+                        <button type="button" class="btn btn-outline" onclick="showLoginModal()">Iniciar Sesión</button>
+                        <button type="button" class="btn btn-primary" onclick="showRegisterModal()">Registrarse</button>
+                        <button type="button" class="btn btn-outline" onclick="showAdminModal()">Intranet</button>
+                    </div>
+
+                    <!-- MENÚ USUARIO -->
+                    <div class="user-menu" id="userMenu" style="display:none; position:relative;">
+                        <button type="button" class="btn btn-outline user-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                            <span id="userGreeting">Usuario</span>
+                            <i class="fas fa-bars"></i>
+                        </button>
+
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="carrito.html" class="dropdown-item">
+                                <i class="fas fa-box"></i> Mis compras
+                            </a>
+
+                            <a href="perfil.html" class="dropdown-item">
+                                <i class="fas fa-id-card"></i> Información
+                            </a>
+
+                            <div class="dropdown-divider"></div>
+
+                            <button type="button" class="dropdown-item logout-btn" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="hamburger">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <a href="carrito.html" class="btn btn-outline btn-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-text">Carrito</span>
+                    <span class="cart-badge" id="cartBadge">0</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+<body>
+
+<div class="main-wrapper">
+    <div class="card-container">
+        <h1>Agrega una nueva tarjeta</h1>
+        <div class="tab-title">Nueva tarjeta de débito</div>
+
+        <div class="form-content">
+            <div class="inputs-side">
+                <div class="form-group">
+                    <label>Número de tarjeta</label>
+                    <input type="text" placeholder="0000 0000 0000 0000">
+                </div>
+
+                <div class="form-group">
+                    <label>Nombre y apellido</label>
+                    <input type="text" placeholder="Como aparece en la tarjeta">
+                </div>
+
+                <div class="row">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Fecha de vencimiento</label>
+                        <input type="text" placeholder="MM/AA">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Código de seg.</label>
+                        <input type="text" placeholder="000">
+                    </div>
+                </div>
+            </div>
+
+            <div class="visual-side">
+                <div class="card-mockup">
+                    <div class="chip"></div>
+                    <div class="card-number">•••• •••• •••• ••••</div>
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-wrapper">
+            <button class="btn-continue">Continuar</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
