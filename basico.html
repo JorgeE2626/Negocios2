@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Paquete Básico | LMY</title>
+    <link rel="stylesheet" href="Proyecto.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="container" style="padding-top:120px; padding-bottom:60px;">
+
+        <div class="back-button">
+            <a href="sistema.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Volver a la tienda
+            </a>
+        </div>
+
+        <div class="producto-card">
+            <div class="producto-container">
+
+                <div class="producto-image"
+                    style="display:flex; align-items:center; justify-content:center; flex-direction:column;">
+                    <i class="fas fa-gift" style="font-size:70px;"></i>
+                    <div class="producto-overlay">
+                        <span class="precio">Desde $250</span>
+                    </div>
+                </div>
+
+                <div class="producto-content">
+                    <h3 style="margin-bottom:6px;">Paquete Básico</h3>
+                    <p style="margin-top:0; opacity:.8;">Ideal para un detalle sencillo pero bonito.</p>
+
+                    <ul class="producto-features">
+                        <li><i class="fas fa-check"></i> 1 Taza estándar</li>
+                        <li><i class="fas fa-check"></i> 1 Llavero de acero (frente y vuelta)</li>
+                        <li><i class="fas fa-check"></i> 1 Rompecabezas tamaño carta</li>
+                        <li><i class="fas fa-check"></i> Diseño personalizado a tu elección</li>
+                    </ul>
+
+                    <h4>Elige tu paquete:</h4>
+                    <select class="select-producto" id="opcionesProducto" data-producto="Paquete Básico"
+                        data-mensaje="mensajeAgregado">
+                        <option value="250">Paquete Básico - $250</option>
+                        <option value="290">Básico Plus (mejor impresión) - $290</option>
+                        <option value="330">Básico Premium (detalle extra) - $330</option>
+                    </select>
+
+                    <br><br>
+
+                    <div class="producto-actions" style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="agregarCarritoDesdeSelect('opcionesProducto')">
+                            <i class="fas fa-cart-plus"></i> Agregar al carrito
+                        </button>
+                        <a href="carrito.html" class="btn btn-outline">
+                            <i class="fas fa-shopping-cart"></i> Ver carrito
+                        </a>
+                    </div>
+
+                    <p id="mensajeAgregado" class="success-mini" style="display:none;">
+                        ✔ Paquete agregado al carrito
+                    </p>
+
+                </div>
+
+            </div>
+        </div>
+        <h3 class="titulo-seccion">Otras opciones</h3>
+        <div class="especialidades-grid">
+
+            <div class="especialidad-card">
+                <div class="especialidad-icon-box" style="background-color: #e3f2fd;">
+                    <i class="fas fa-plane" style="font-size: 55px; color: #1976d2;"></i>
+                </div>
+                <div class="especialidad-info">
+                    <h4>Paquete Viajero</h4>
+                    <p>Combo ideal para regalos y detalles listos para sorprender.</p>
+                </div>
+            </div>
+
+            <div class="especialidad-card">
+                <div class="especialidad-icon-box" style="background-color: #fff3e0;">
+                    <i class="fas fa-basketball-ball" style="font-size: 55px; color: #fb8c00;"></i>
+                </div>
+                <div class="especialidad-info">
+                    <h4>Paquete Deportivo</h4>
+                    <p>Lleva la pasión de tu equipo favorito en cada detalle.</p>
+                </div>
+            </div>
+
+            <div class="especialidad-card">
+                <div class="especialidad-icon-box" style="background-color: #f3e5f5;">
+                    <i class="fas fa-hat-wizard" style="font-size: 55px; color: #7b1fa2;"></i>
+                </div>
+                <div class="especialidad-info">
+                    <h4>Paquete Potterhead</h4>
+                    <p>Toda la magia de Hogwarts personalizada para ti.</p>
+                </div>
+            </div>
+
+            <div class="especialidad-card">
+                <div class="especialidad-icon-box" style="background-color: #e8f5e9;">
+                    <i class="fas fa-graduation-cap" style="font-size: 55px; color: #2e7d32;"></i>
+                </div>
+                <div class="especialidad-info">
+                    <h4>Paquete Estudiante</h4>
+                    <p>Motivación y estilo para tus días de estudio.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        function agregarCarritoDesdeSelect(selectId) {
+            const select = document.getElementById(selectId);
+            const producto = select.dataset.producto;
+            const mensajeId = select.dataset.mensaje;
+
+            const descripcion = select.options[select.selectedIndex].text;
+            const precio = Number(select.value);
+
+            let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+            const existente = carrito.find(item =>
+                item.producto === producto && item.descripcion === descripcion
+            );
+
+            if (existente) existente.cantidad += 1;
+            else carrito.push({ producto, descripcion, precio, cantidad: 1 });
+
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+
+            const msg = document.getElementById(mensajeId);
+            msg.style.display = "block";
+            setTimeout(() => msg.style.display = "none", 2000);
+        }
+    </script>
+
+</body>
+
+</html>
