@@ -26,23 +26,19 @@ SET time_zone = "+00:00";
 --
 -- Estructura de tabla para la tabla `paquetes`
 --
-CREATE TABLE `usuarios` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `username` VARCHAR(50) NOT NULL,
-  `email` VARCHAR(100) NOT NULL,
-  `telefono` VARCHAR(20) DEFAULT NULL,
-  `empresa` VARCHAR(100) DEFAULT NULL,
-  `password_hash` VARCHAR(255) NOT NULL,
-  `fecha_registro` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-  `estado` ENUM('activo', 'inactivo') NOT NULL DEFAULT 'activo',
-  `etapa_crm` ENUM('Prospecto', 'Activo', 'Frecuente', 'Inactivo') NOT NULL DEFAULT 'Prospecto',
-  `role` ENUM('cliente','admin') NOT NULL DEFAULT 'cliente',
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `email` (`email`)
+
+CREATE TABLE `paquetes` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `items` text NOT NULL,
+  `featured` tinyint(1) DEFAULT 0,
+  `active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Volcado de datos para la tabla `paquetes`
 --
@@ -89,15 +85,23 @@ INSERT INTO `productos` (`id`, `name`, `description`, `price`, `category`, `feat
 --
 
 CREATE TABLE `usuarios` (
-  `id` int(11) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `role` enum('cliente','admin') NOT NULL DEFAULT 'cliente',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(50) NOT NULL,
+  `nombre` VARCHAR(120) DEFAULT NULL,
+  `email` VARCHAR(100) NOT NULL,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `telefono` VARCHAR(20) DEFAULT NULL,
+  `empresa` VARCHAR(100) DEFAULT NULL,
+  `role` ENUM('cliente','admin') NOT NULL DEFAULT 'cliente',
+  `fecha_registro` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  `estado` ENUM('activo', 'inactivo') NOT NULL DEFAULT 'activo',
+  `etapa_crm` ENUM('Prospecto', 'Activo', 'Frecuente', 'Inactivo') NOT NULL DEFAULT 'Prospecto',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 --
 -- Volcado de datos para la tabla `usuarios`
 --
