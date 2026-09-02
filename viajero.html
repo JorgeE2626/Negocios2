@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Paquete Viajero | LMY</title>
+
+    <link rel="stylesheet" href="Proyecto.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="container" style="padding-top:120px; padding-bottom:60px;">
+
+        <!-- Botón regresar -->
+        <div class="back-button">
+            <a href="sistema.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Volver a la tienda
+            </a>
+        </div>
+
+        <!-- Tarjeta de paquete (orden distinto: header grande -> lista -> selector -> acciones) -->
+        <div class="producto-card">
+            <div class="producto-container">
+
+                <!-- “Imagen” tipo paquete (puedes cambiar por una imagen real si quieres) -->
+                <div class="producto-image"
+                    style="display:flex; align-items:center; justify-content:center; flex-direction:column;">
+                    <i class="fas fa-suitcase-rolling" style="font-size:70px;"></i>
+
+                    <div class="producto-overlay">
+                        <span class="precio">Desde $320</span>
+                    </div>
+                </div>
+
+                <!-- Contenido -->
+                <div class="producto-content">
+
+                    <h3 style="margin-bottom:6px;">Paquete Viajero</h3>
+                    <p style="margin-top:0; opacity:.8;">
+                        Combo ideal para regalos y detalles listos para sorprender.
+                    </p>
+
+                    <ul class="producto-features">
+                        <li><i class="fas fa-check"></i> 1 Bolsa ecológica chica</li>
+                        <li><i class="fas fa-check"></i> 2 Llaveros de acero (frente y vuelta)</li>
+                        <li><i class="fas fa-check"></i> 1 Cojín 20 x 30 cm</li>
+                        <li><i class="fas fa-check"></i> Diseño personalizado a tu elección</li>
+                    </ul>
+
+                    <!-- Selector (por si manejas variantes) -->
+                    <h4>Elige tu paquete:</h4>
+
+                    <select class="select-producto" id="opcionesProducto" data-producto="Paquete Viajero"
+                        data-mensaje="mensajeAgregado">
+                        <option value="320">Paquete Viajero - $320</option>
+                        <option value="390">Paquete Viajero Plus (más impresión) - $390</option>
+                        <option value="450">Paquete Viajero Premium (detalle extra) - $450</option>
+                    </select>
+
+                    <br><br>
+
+                    <!-- Acciones (seleccionar varios / carrito / pago) -->
+                    <div class="producto-actions" style="display:flex; gap:12px; flex-wrap:wrap;">
+
+                        <button class="btn btn-primary" onclick="agregarCarritoDesdeSelect('opcionesProducto')">
+                            <i class="fas fa-cart-plus"></i> Agregar al carrito
+                        </button>
+
+                        <a href="carrito.html" class="btn btn-outline">
+                            <i class="fas fa-shopping-cart"></i> Ver carrito
+                        </a>
+
+                        <!-- Pago directo (opcional) -->
+                        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" style="margin:0;">
+                            <input type="hidden" name="cmd" value="_xclick">
+                            <input type="hidden" name="business" value="TU_CORREO_PAYPAL@gmail.com">
+                            <input type="hidden" name="item_name" value="Paquete Viajero">
+                            <input type="hidden" name="amount" value="320">
+                            <input type="hidden" name="currency_code" value="MXN">
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fab fa-paypal"></i> Pagar ahora
+                            </button>
+                        </form>
+
+                    </div>
+
+                    <p id="mensajeAgregado" class="success-mini" style="display:none;">
+                        ✔ Paquete agregado al carrito
+                    </p>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <h3 class="titulo-seccion">Otras opciones</h3>
+
+        <div class="especialidades-grid">
+
+            <div class="especialidad-card">
+                <div class="especialidad-icon-box" style="background-color: #f5f5f5;">
+                    <i class="fas fa-gift" style="font-size: 55px; color: #444;"></i>
+                </div>
+                <div class="especialidad-info">
+                    <h4>Paquete Básico</h4>
+                    <p>Un detalle sencillo, económico y perfecto para cualquier ocasión.</p>
+                </div>
+            </div>
+
+            <div class="especialidad-card">
+                <div class="especialidad-icon-box" style="background-color: #fff3e0;">
+                    <i class="fas fa-basketball-ball" style="font-size: 55px; color: #fb8c00;"></i>
+                </div>
+                <div class="especialidad-info">
+                    <h4>Paquete Deportivo</h4>
+                    <p>Personalizado con tu equipo favorito o frases motivadoras.</p>
+                </div>
+            </div>
+
+            <div class="especialidad-card">
+                <div class="especialidad-icon-box" style="background-color: #f3e5f5;">
+                    <i class="fas fa-hat-wizard" style="font-size: 55px; color: #7b1fa2;"></i>
+                </div>
+                <div class="especialidad-info">
+                    <h4>Paquete Potterhead</h4>
+                    <p>Lleva la magia de Hogwarts a tus productos personalizados.</p>
+                </div>
+            </div>
+
+            <div class="especialidad-card">
+                <div class="especialidad-icon-box" style="background-color: #e8f5e9;">
+                    <i class="fas fa-graduation-cap" style="font-size: 55px; color: #2e7d32;"></i>
+                </div>
+                <div class="especialidad-info">
+                    <h4>Paquete Estudiante</h4>
+                    <p>Diseños creativos para acompañarte en tus horas de estudio.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        function agregarCarritoDesdeSelect(selectId) {
+            const select = document.getElementById(selectId);
+
+            const producto = select.dataset.producto;
+            const mensajeId = select.dataset.mensaje;
+
+            const descripcion = select.options[select.selectedIndex].text;
+            const precio = Number(select.value);
+
+            let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+            const existente = carrito.find(item =>
+                item.producto === producto && item.descripcion === descripcion
+            );
+
+            if (existente) {
+                existente.cantidad += 1;
+            } else {
+                carrito.push({
+                    producto,
+                    descripcion,
+                    precio,
+                    cantidad: 1
+                });
+            }
+
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+
+            const msg = document.getElementById(mensajeId);
+            msg.style.display = "block";
+
+            setTimeout(() => {
+                msg.style.display = "none";
+            }, 2000);
+        }
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Termos | LMY</title>
+
+    <link rel="stylesheet" href="Proyecto.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="container" style="padding-top:120px; padding-bottom:60px;">
+
+        <!-- Botón regresar -->
+        <div class="back-button">
+            <a href="sistema.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Volver a la tienda
+            </a>
+        </div>
+
+        <div class="producto-card">
+            <div class="producto-container">
+
+                <!-- Imagen -->
+                <div class="producto-image">
+                    <img src="imagen/termo.jpg" alt="Termo personalizado" style="width:220px;">
+                    <div class="producto-overlay">
+                        <span class="precio">Desde $180</span>
+                    </div>
+                </div>
+
+                <!-- Información -->
+                <div class="producto-content">
+                    <h3>Termos Personalizados</h3>
+
+                    <ul class="producto-features">
+                        <li><i class="fas fa-check"></i> Termo ideal para café, agua o bebidas frías</li>
+                        <li><i class="fas fa-check"></i> Personalización con nombre, frase o diseño</li>
+                        <li><i class="fas fa-check"></i> Impresión de alta calidad (DTF / vinil)</li>
+                        <li><i class="fas fa-check"></i> Mantiene temperatura por más tiempo</li>
+                        <li><i class="fas fa-check"></i> Colores disponibles según modelo</li>
+                        <li><i class="fas fa-check"></i> Perfecto para regalo o uso diario</li>
+                    </ul>
+
+                    <h4>Selecciona tu termo:</h4>
+
+                    <select class="select-producto" id="opcionesProducto" data-producto="Termo personalizado"
+                        data-mensaje="mensajeAgregado">
+                        <option value="180">Termo 500 ml (básico) - $180</option>
+                        <option value="220">Termo acero 600 ml (premium) - $220</option>
+                        <option value="260">Termo premium + nombre personalizado - $260</option>
+                    </select>
+
+                    <label for="cantidadProducto">Cantidad:</label>
+                    <input type="number" id="cantidadProducto" min="1" max="100" value="1">
+                    <br><br>
+
+                    <!-- Botones -->
+                    <div class="producto-actions" style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="agregarCarritoDesdeSelect('opcionesProducto')">
+                            <i class="fas fa-cart-plus"></i> Agregar al carrito
+                        </button>
+
+                        <a href="carrito.html" class="btn btn-outline">
+                            <i class="fas fa-shopping-cart"></i> Ver carrito
+                        </a>
+                        <a href="prodrelacionados .html" class="btn btn-outline">
+                            Productos relacionados
+                        </a>
+                    </div>
+
+                    <p id="mensajeAgregado" class="success-mini" style="display:none;">
+                        ✔ Producto agregado al carrito
+                    </p>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function agregarCarritoDesdeSelect(selectId) {
+
+            const select = document.getElementById(selectId);
+            const cantidadInput = document.getElementById("cantidadProducto");
+
+            // seguridad
+            if (!select || !cantidadInput) {
+                alert("Error: no se encontró el producto o la cantidad");
+                return;
+            }
+
+            const producto = select.dataset.producto;
+            const mensajeId = select.dataset.mensaje;
+
+            const descripcion = select.options[select.selectedIndex].text;
+            const precio = Number(select.value);
+            let cantidad = Number(cantidadInput.value);
+
+            // evitar cantidades inválidas
+            if (isNaN(cantidad) || cantidad <= 0) {
+                cantidad = 1;
+                cantidadInput.value = 1;
+            }
+
+            let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+            // buscar si ya existe
+            const existente = carrito.find(item =>
+                item.producto === producto && item.descripcion === descripcion
+            );
+
+            if (existente) {
+                existente.cantidad += cantidad;
+            } else {
+                carrito.push({
+                    producto: producto,
+                    descripcion: descripcion,
+                    precio: precio,
+                    cantidad: cantidad
+                });
+            }
+
+            // guardar
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+
+            // mensaje visual
+            const msg = document.getElementById(mensajeId);
+            if (msg) {
+                msg.style.display = "block";
+                setTimeout(() => {
+                    msg.style.display = "none";
+                }, 2000);
+            }
+
+            cantidadInput.value = 1;
+        }
+    </script>
+
+
+</body>
+
+</html>

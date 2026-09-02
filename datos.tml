@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Domicilio</title>
+
+     <link rel="stylesheet" href="Proyecto.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        :root {
+            --ml-blue: #3483fa;
+            --ml-light-blue: #e3edfb;
+            --ml-gray: #666;
+            --ml-border: #ddd;
+            --ml-bg: #eeeeee;
+        }
+
+        body {
+            font-family: "Proxima Nova", -apple-system, Roboto, Arial, sans-serif;
+            background-color: var(--ml-bg);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 32px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,.12);
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #333;
+        }
+
+        .location-btn {
+            width: 100%;
+            background-color: var(--ml-light-blue);
+            color: var(--ml-blue);
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .row .form-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--ml-border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--ml-blue);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #333;
+            margin-top: 8px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 32px 0 8px 0;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--ml-gray);
+            margin-bottom: 20px;
+        }
+
+        .continue-btn {
+            width: 100%;
+            background-color: var(--ml-blue);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+
+        .continue-btn:hover {
+            background-color: #2968c8;
+        }
+
+    </style>
+</head>
+
+   <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>LMY</h1>
+                    <span>diseño e impresión</span>
+                </div>
+
+                <ul class="nav-menu">
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#productos">Productos</a></li>
+                    <li><a href="#paquetes">Paquetes</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                    <li><a href="#ticket">Tickets</a></li>
+                    <li><a href="#nosotros">Nosotros</a></li>
+                    <li><a href="Promociones.html">Promociones</a></li>
+                </ul>
+
+                <div class="auth-buttons">
+                    <!-- BOTONES INVITADO -->
+                    <div id="guestButtons">
+                        <button type="button" class="btn btn-outline" onclick="showLoginModal()">Iniciar Sesión</button>
+                        <button type="button" class="btn btn-primary" onclick="showRegisterModal()">Registrarse</button>
+                        <button type="button" class="btn btn-outline" onclick="showAdminModal()">Intranet</button>
+                    </div>
+
+                    <!-- MENÚ USUARIO -->
+                    <div class="user-menu" id="userMenu" style="display:none; position:relative;">
+                        <button type="button" class="btn btn-outline user-btn" onclick="toggleUserMenu(event)">
+                            <i class="fas fa-user"></i>
+                            <span id="userGreeting">Usuario</span>
+                            <i class="fas fa-bars"></i>
+                        </button>
+
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="carrito.html" class="dropdown-item">
+                                <i class="fas fa-box"></i> Mis compras
+                            </a>
+
+                            <a href="perfil.html" class="dropdown-item">
+                                <i class="fas fa-id-card"></i> Información
+                            </a>
+
+                            <div class="dropdown-divider"></div>
+
+                            <button type="button" class="dropdown-item logout-btn" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="hamburger">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <a href="carrito.html" class="btn btn-outline btn-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-text">Carrito</span>
+                    <span class="cart-badge" id="cartBadge">0</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+
+<body>
+
+<div class="container">
+    <h2>Nuevo domicilio</h2>
+
+    <button class="location-btn">
+        <span>📍</span> Usar mi ubicación
+    </button>
+
+    <form>
+        <div class="form-group">
+            <label for="address">Dirección o lugar de entrega</label>
+            <input type="text" id="address" placeholder="Ej: Avenida los leones 4563">
+            <div class="checkbox-group">
+                <input type="checkbox" id="no-number">
+                <label for="no-number" style="margin:0">Mi calle no tiene número</label>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label for="state">Estado</label>
+                <select id="state">
+                    <option value="">Debes seleccionar una opción</option>
+                    <option value="ags">Aguascalientes</option>
+                    <option value="cdmx">Ciudad de México</option>
+                    </select>
+            </div>
+            <div class="form-group">
+                <label for="city">Municipio o alcaldía</label>
+                <input type="text" id="city">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label for="locality">Localidad</label>
+                <input type="text" id="locality">
+            </div>
+            <div class="form-group">
+                <label for="neighborhood">Colonia o barrio</label>
+                <input type="text" id="neighborhood">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label for="zip">Código Postal</label>
+                <input type="text" id="zip" placeholder="Ej: 09440">
+            </div>
+            <div class="form-group">
+                <label for="interior">Número interior / Depto. (opcional)</label>
+                <input type="text" id="interior" placeholder="Ej: 201">
+            </div>
+        </div>
+
+        <div class="section-title">Datos de contacto</div>
+        
+
+        <div class="form-group">
+            <label for="name">Nombre y apellido</label>
+            <input type="text" id="name" value="">
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Teléfono</label>
+            <input type="tel" id="phone" value="">
+        </div>
+
+        <button type="button" class="continue-btn" onclick="window.location.href='Tarjeta.html';">
+    Continuar
+</button>
+    </form>
+</div>
+
+</body>
+</html>
