@@ -62,6 +62,10 @@
 
                             <div class="dropdown-divider"></div>
 
+                            <a href="admin.html" class="dropdown-item" id="adminPanelLink" style="display:none;">
+                                <i class="fas fa-user-shield"></i> Panel de administración
+                            </a>
+
                             <button type="button" class="dropdown-item logout-btn" onclick="logout()">
                                 <i class="fas fa-sign-out-alt"></i> Cerrar sesión
                             </button>
@@ -739,28 +743,70 @@
             document.getElementById('guestButtons').style.display = 'none';
             document.getElementById('userMenu').style.display = 'flex';
             document.getElementById('userGreeting').textContent = currentUser.username || "Usuario";
+            document.getElementById('adminPanelLink').style.display =
+                currentUser.role === 'admin' ? 'flex' : 'none';
         }
 
         function updateUIForLoggedOutUser() {
             document.getElementById('guestButtons').style.display = 'flex';
             document.getElementById('userMenu').style.display = 'none';
+            document.getElementById('adminPanelLink').style.display = 'none';
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
+        async function restoreSession() {
             updateUIForLoggedOutUser();
-        });
+            try {
+                const response = await fetch('php/check_session.php', {
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                });
+                if (!response.ok) return;
+
+                const data = await response.json();
+                if (data.authenticated && data.user) {
+                    currentUser = data.user;
+                    updateUIForLoggedInUser();
+                }
+            } catch (error) {
+                console.error('No se pudo restaurar la sesión:', error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", restoreSession);
 
         async function login(event) {
             event.preventDefault();
-            showSuccessBanner("Inicio exitoso");
-            closeModal('loginModal');
 
-            currentUser = {
-                username: document.getElementById('loginUsername').value || "Cliente",
-                role: "user"
-            };
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
 
-            updateUIForLoggedInUser();
+            try {
+                const response = await fetch('php/login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success || !data.user) {
+                    throw new Error(data.error || 'Usuario o contraseña incorrectos.');
+                }
+
+                currentUser = data.user;
+                closeModal('loginModal');
+                updateUIForLoggedInUser();
+                showSuccessBanner(
+                    currentUser.role === 'admin'
+                        ? 'Bienvenido administrador'
+                        : 'Inicio exitoso'
+                );
+            } catch (error) {
+                showSuccessBanner(error.message);
+            }
         }
 
         async function register(event) {
@@ -803,7 +849,6 @@
                 showSuccessBanner("Bienvenido a Intranet");
                 closeModal('adminModal');
                 updateUIForLoggedInUser();
-                setTimeout(() => { window.location.href = "admin.html"; }, 800);
             } catch (error) {
                 showSuccessBanner(error.message);
             }

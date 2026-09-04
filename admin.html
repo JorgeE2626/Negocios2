@@ -584,6 +584,15 @@
                     credentials: 'same-origin',
                     cache: 'no-store'
                 });
+                if (res.status === 403) {
+                    const indicador = document.getElementById('estado-tiempo-real');
+                    if (indicador) {
+                        indicador.classList.add('error');
+                        indicador.textContent = 'Sesión no autorizada. Inicia sesión como administrador.';
+                    }
+                    window.setTimeout(() => window.location.replace('sistema.html'), 800);
+                    return {};
+                }
                 if (!res.ok) {
                     throw new Error(`No se pudieron cargar los datos (${res.status})`);
                 }
@@ -691,7 +700,7 @@
                         <td>${c.id}</td>
                         <td>${c.username || 'N/A'}</td>
                         <td><a href="#" style="color:#294997; font-weight:600;" onclick="verPerfilCliente(${c.id})">${c.nombre || c.username}</a></td>
-                        <td>${c.email || c.correo}</td>
+                        <td>${c.email || ''}</td>
                         <td>${c.telefono || 'N/A'}</td>
                         <td>${c.empresa || 'N/A'}</td>
                         <td>${c.etapa || 'Prospecto'}</td>
@@ -793,7 +802,7 @@
             const datosPerfil = document.getElementById('datos-perfil-cliente');
             datosPerfil.innerHTML = `
                 <p><strong>Nombre:</strong> ${c.nombre || c.username}</p>
-                <p><strong>Correo:</strong> ${c.email || c.correo}</p>
+                <p><strong>Correo:</strong> ${c.email || ''}</p>
                 <p><strong>Teléfono:</strong> ${c.telefono || 'N/A'}</p>
                 <p><strong>Empresa:</strong> ${c.empresa || 'N/A'}</p>
                 <p><strong>Etapa CRM:</strong> ${c.etapa || 'Prospecto'}</p>

@@ -79,8 +79,8 @@ try {
         unset($producto);
 
         $clientes = $pdo->query(
-            "SELECT id, username, nombre, email AS correo, telefono, empresa, etapa_crm AS etapa,
-                   DATE_FORMAT(COALESCE(fecha_registro, created_at), '%Y-%m-%d') AS ingreso,
+            "SELECT id, username, nombre, email, telefono, empresa, etapa_crm AS etapa,
+                   DATE_FORMAT(fecha_registro, '%Y-%m-%d') AS ingreso,
                    CASE WHEN estado = 'activo' THEN 'Activo' ELSE 'Inactivo' END AS estado
              FROM usuarios WHERE role = 'cliente' ORDER BY id"
         )->fetchAll();
