@@ -732,7 +732,7 @@
             });
         });
 
-        // ========= Sistema de autenticación (SIMULADO) =========
+        // ========= Sistema de autenticación =========
         let currentUser = null;
 
         function updateUIForLoggedInUser() {
@@ -783,20 +783,30 @@
         async function adminLogin(event) {
             event.preventDefault();
 
-            showSuccessBanner("Bienvenido a Intranet");
-            closeModal('adminModal');
+            try {
+                const response = await fetch('php/login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        username: document.getElementById('adminUsername').value.trim(),
+                        password: document.getElementById('adminPassword').value
+                    })
+                });
+                const data = await response.json();
 
-            currentUser = {
-                username: document.getElementById('adminUsername').value || "Admin",
-                role: "admin"
-            };
+                if (!response.ok || !data.success || data.user.role !== 'admin') {
+                    throw new Error(data.error || 'Las credenciales no corresponden a un administrador.');
+                }
 
-            updateUIForLoggedInUser();
-
-            // REDIRECCIÓN A INTRANET
-            setTimeout(() => {
-                window.location.href = "admin.html";
-            }, 800);
+                currentUser = data.user;
+                showSuccessBanner("Bienvenido a Intranet");
+                closeModal('adminModal');
+                updateUIForLoggedInUser();
+                setTimeout(() => { window.location.href = "admin.html"; }, 800);
+            } catch (error) {
+                showSuccessBanner(error.message);
+            }
         }
 
         // ========= Dropdown usuario =========

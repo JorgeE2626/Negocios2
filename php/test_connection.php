@@ -6,7 +6,7 @@ try {
     echo "<h2>✅ Conexión a la base de datos exitosa</h2>";
     
     // Verificar si las tablas existen
-    $tables = ['usuarios', 'productos', 'paquetes'];
+    $tables = ['usuarios', 'productos', 'paquetes', 'interacciones', 'ventas'];
     echo "<h3>Estado de las tablas:</h3>";
     
     foreach ($tables as $table) {
@@ -40,4 +40,3 @@ try {
     echo "</ul>";
 }
 ?>
-

@@ -74,9 +74,9 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id`, `name`, `description`, `price`, `category`, `features`, `image_icon`, `active`, `created_at`, `updated_at`) VALUES
-(1, 'Taza Estándar', 'Taza estándar de cerámica personalizada', 85.00, 'tazas', '["Taza estándar de cerámica - $85", "Taza con asa de color - $95", "Taza mágica - $120", "Par de tazas corazón - $215", "Taza recta grande 444ml - $130"]', 'fas fa-mug-hot', 1, '2025-07-25 18:03:03', '2025-07-25 18:03:03'),
-(2, 'Tapete Afelpado', 'Tapete blanco afelpado suave para interior', 300.00, 'tapetes', '["Tapete blanco afelpado suave", "Para interior, revés antideslizante", "Medida: 34 x 58 cm", "Impresión máxima: 30 x 43 cm", "Diseño personalizado"]', 'fas fa-home', 1, '2025-07-25 18:03:03', '2025-07-25 18:03:03'),
-(3, 'Sudaderas', 'Sudaderas personalizadas de algodón', 425.00, 'sudaderas', '["Sudadera sencilla - $425", "Sudadera con gorra - $500", "Algodón, sencilla, cerrada", "Cuello redondo", "Diseño personalizado"]', 'fas fa-tshirt', 1, '2025-07-25 18:03:03', '2025-07-25 18:03:03'),
+(1, 'Teléfono Smartphone Pro', 'Teléfono Smartphone Pro', 12500.00, 'general', '[]', 'fas fa-mobile-alt', 1, '2025-07-25 18:03:03', '2025-07-25 18:03:03'),
+(2, 'Televisión Smart TV 55"', 'Televisión Smart TV 55"', 9800.00, 'general', '[]', 'fas fa-tv', 1, '2025-07-25 18:03:03', '2025-07-25 18:03:03'),
+(3, 'Computadora Portátil i7', 'Computadora Portátil i7', 18900.00, 'general', '[]', 'fas fa-laptop', 1, '2025-07-25 18:03:03', '2025-07-25 18:03:03'),
 (4, 'Camisas Uniforme', 'Camisas de uniforme en gabardina peinada', 195.00, 'uniformes', '["Gabardina peinada, muy durable", "Para dama y caballero", "Tallas: CH, M, G, EG, 2XL, 3XL, 4XL", "Frente: $195 - $535", "Frente y vuelta: $510 - $550"]', 'fas fa-user-tie', 1, '2025-07-25 18:03:03', '2025-07-25 18:03:03');
 
 -- --------------------------------------------------------
@@ -111,7 +111,14 @@ CREATE TABLE `usuarios` (
 INSERT INTO `usuarios` (`id`, `username`, `nombre`, `email`, `password_hash`, `telefono`, `empresa`, `role`, `estado`, `etapa_crm`, `created_at`, `updated_at`) VALUES
 (1, 'admin', 'Administrador Principal', 'admin@nikenza.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '5550001122', 'LYM Store', 'admin', 'activo', 'Activo', '2025-07-25 18:03:03', '2025-07-25 18:03:03'),
 (2, 'lalo', 'Eduardo Cisneros', 'eduardocisnerossoriano@gmail.com', '$2y$10$oqGlUntIqU25rzCqTe2GGuhhEsjIIvG.m1HsMb0kQ1.zvvvUAAw8G', '5559998877', 'LYM Store', 'admin', 'activo', 'Activo', '2025-07-25 18:03:37', '2025-07-25 18:04:03'),
-(3, 'carlos_m', 'Carlos Mendoza', 'carlos@empresa.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '5551234567', 'Tech Solutions', 'cliente', 'activo', 'Prospecto', '2025-07-25 18:10:00', '2025-07-25 18:10:00');
+(3, 'carlos_m', 'Carlos Mendoza', 'carlos@empresa.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '5551234567', 'Tech Solutions', 'cliente', 'activo', 'Prospecto', '2025-07-25 18:10:00', '2025-07-25 18:10:00'),
+(4, 'pedro_f', 'Pedro F', 'pedro@gmail.com', '$2y$10$JNWNR0qJq3RO1OBqrGegH.T1JGetKLm3AbMwKjuAnuRSTC2GqvIpS', '', 'LYM Store', 'cliente', 'activo', 'Prospecto', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
+(5, 'jorge', 'Jorge', 'jorge@gmail.com', '$2y$10$oWomNDyQWLZ.bIaiJDHjjuElKAdtE1EICF2kJo3R56L1xWO8MRDUm', '', NULL, 'cliente', 'activo', 'Prospecto', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
+(6, 'admin_principal', 'Administrador Principal', 'admin@techzone.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '4491112233', 'TechZone', 'admin', 'activo', 'Activo', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
+(7, 'roberto_sanchez', 'Roberto Sánchez', 'roberto@techzone.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '4494445566', 'TechZone', 'cliente', 'activo', 'Prospecto', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
+(8, 'carlos_mendoza', 'Carlos Mendoza', 'carlos.mendoza@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '4491234567', NULL, 'cliente', 'activo', 'Activo', '2025-01-15 08:00:00', CURRENT_TIMESTAMP()),
+(9, 'ana_torres', 'Ana Sofía Torres', 'ana.torres@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '4499876543', NULL, 'cliente', 'activo', 'Activo', '2025-02-10 08:00:00', CURRENT_TIMESTAMP()),
+(10, 'luis_gomez', 'Luis Alberto Gómez', 'luis.gomez@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '4495557890', NULL, 'cliente', 'inactivo', 'Inactivo', '2025-02-28 08:00:00', CURRENT_TIMESTAMP());
 
 -- --------------------------------------------------------
 
@@ -140,6 +147,35 @@ CREATE TABLE `interacciones` (
 
 INSERT INTO `interacciones` (`id`, `cliente_id`, `usuario_id`, `tipo`, `descripcion`) VALUES
 (1, 3, 1, 'llamada', 'Contacto inicial con el cliente. Solicita presupuesto de tazas corporativas.');
+(2, 8, 6, 'llamada', 'Llamada de seguimiento por cotización de Laptop.'),
+(3, 8, 6, 'correo', 'Envío de recibo de pago.'),
+(4, 9, 6, 'mensaje', 'Confirmación de entrega de Smart TV.');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `ventas` (Registro del panel administrativo)
+--
+
+CREATE TABLE `ventas` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `folio` VARCHAR(30) NOT NULL,
+  `cliente_id` INT(11) DEFAULT NULL,
+  `producto_id` INT(11) DEFAULT NULL,
+  `total` DECIMAL(10,2) NOT NULL,
+  `fecha` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_ventas_folio` (`folio`),
+  KEY `fk_ventas_cliente` (`cliente_id`),
+  KEY `fk_ventas_producto` (`producto_id`),
+  CONSTRAINT `fk_ventas_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_ventas_producto` FOREIGN KEY (`producto_id`) REFERENCES `productos` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `ventas` (`folio`, `cliente_id`, `producto_id`, `total`) VALUES
+('#VNT-101', 3, 1, 12500.00),
+('#VNT-102', 3, 3, 18900.00),
+('#VNT-103', 3, 2, 4900.00);
 
 --
 -- AUTO_INCREMENT de las tablas volcadas
@@ -147,8 +183,9 @@ INSERT INTO `interacciones` (`id`, `cliente_id`, `usuario_id`, `tipo`, `descripc
 
 ALTER TABLE `paquetes` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 ALTER TABLE `productos` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-ALTER TABLE `usuarios` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-ALTER TABLE `interacciones` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+ALTER TABLE `usuarios` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+ALTER TABLE `interacciones` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+ALTER TABLE `ventas` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 COMMIT;
 
