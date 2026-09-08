@@ -854,6 +854,28 @@
             }
         }
 
+        async function logout() {
+            try {
+                const response = await fetch('php/logout.php', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    cache: 'no-store'
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'No se pudo cerrar la sesión.');
+                }
+
+                currentUser = null;
+                updateUIForLoggedOutUser();
+                document.getElementById('userDropdown').classList.remove('show-dropdown');
+                showSuccessBanner('Sesión cerrada');
+            } catch (error) {
+                showSuccessBanner(error.message);
+            }
+        }
+
         // ========= Dropdown usuario =========
         function toggleUserMenu(e) {
             e.stopPropagation();
