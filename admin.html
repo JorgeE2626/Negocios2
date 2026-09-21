@@ -685,6 +685,13 @@
                 const tbody = document.getElementById('tabla-productos-body');
                 tbody.innerHTML = '';
 
+                if (cacheProductos.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = '<td colspan="9" style="text-align:center;">No hay productos guardados.</td>';
+                    tbody.appendChild(tr);
+                    return;
+                }
+
                 cacheProductos.forEach(p => {
                     const tr = document.createElement('tr');
                     const precioNum = parseFloat(p.price || p.precio || 0);
@@ -706,6 +713,8 @@
                 });
             } catch (e) {
                 console.error("Error al cargar productos:", e);
+                const tbody = document.getElementById('tabla-productos-body');
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#dc3545;">No se pudieron cargar los productos. Inicia sesión como administrador.</td></tr>';
             }
         }
 
