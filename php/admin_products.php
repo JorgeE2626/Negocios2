@@ -41,9 +41,14 @@ try {
             }
             
             // Validar datos requeridos
-            if (empty($input['name']) || empty($input['price']) || empty($input['category'])) {
+            if (!isset($input['name'], $input['description'], $input['price'], $input['category'])
+                || trim((string) $input['name']) === ''
+                || trim((string) $input['description']) === ''
+                || trim((string) $input['category']) === ''
+                || !is_numeric($input['price'])
+                || (float) $input['price'] < 0) {
                 http_response_code(400);
-                echo json_encode(['error' => 'Faltan datos requeridos (name, price, category)']);
+                echo json_encode(['error' => 'Faltan datos requeridos (name, description, price, category)']);
                 exit();
             }
             
@@ -51,12 +56,20 @@ try {
             $description = cleanInput($input['description'] ?? '');
             $price = floatval($input['price']);
             $category = cleanInput($input['category']);
+            $stock_actual = filter_var($input['stock_actual'] ?? 0, FILTER_VALIDATE_INT);
+            $stock_minimo = filter_var($input['stock_minimo'] ?? 0, FILTER_VALIDATE_INT);
+            $estrategia_logistica = cleanInput($input['estrategia_logistica'] ?? '');
+            if ($stock_actual === false || $stock_minimo === false || $stock_actual < 0 || $stock_minimo < 0 || $estrategia_logistica === '') {
+                http_response_code(400);
+                echo json_encode(['error' => 'Stock y estrategia logística deben ser válidos']);
+                exit();
+            }
             $features = isset($input['features']) ? json_encode($input['features']) : '[]';
             $image_icon = cleanInput($input['image_icon'] ?? '');
             $active = isset($input['active']) ? (bool)$input['active'] : true;
             
-            $stmt = $pdo->prepare("INSERT INTO productos (name, description, price, category, features, image_icon, active) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$name, $description, $price, $category, $features, $image_icon, $active]);
+            $stmt = $pdo->prepare("INSERT INTO productos (name, description, price, category, stock_actual, stock_minimo, estrategia_logistica, features, image_icon, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$name, $description, $price, $category, $stock_actual, $stock_minimo, $estrategia_logistica, $features, $image_icon, $active]);
             
             $product_id = $pdo->lastInsertId();
             
@@ -114,6 +127,36 @@ try {
             if (isset($input['category'])) {
                 $updates[] = "category = ?";
                 $params[] = cleanInput($input['category']);
+            }
+            if (isset($input['stock_actual'])) {
+                $stockActual = filter_var($input['stock_actual'], FILTER_VALIDATE_INT);
+                if ($stockActual === false || $stockActual < 0) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'El stock actual debe ser un entero no negativo']);
+                    exit();
+                }
+                $updates[] = "stock_actual = ?";
+                $params[] = $stockActual;
+            }
+            if (isset($input['stock_minimo'])) {
+                $stockMinimo = filter_var($input['stock_minimo'], FILTER_VALIDATE_INT);
+                if ($stockMinimo === false || $stockMinimo < 0) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'El stock mínimo debe ser un entero no negativo']);
+                    exit();
+                }
+                $updates[] = "stock_minimo = ?";
+                $params[] = $stockMinimo;
+            }
+            if (isset($input['estrategia_logistica'])) {
+                $estrategia = cleanInput($input['estrategia_logistica']);
+                if ($estrategia === '') {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'La estrategia logística es obligatoria']);
+                    exit();
+                }
+                $updates[] = "estrategia_logistica = ?";
+                $params[] = $estrategia;
             }
             if (isset($input['features'])) {
                 $updates[] = "features = ?";
@@ -197,4 +240,3 @@ try {
     echo json_encode(['error' => 'Error interno del servidor: ' . $e->getMessage()]);
 }
 ?>
-

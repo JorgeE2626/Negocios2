@@ -69,7 +69,9 @@ try {
 
     if ($method === 'GET') {
         $productos = $pdo->query(
-            'SELECT id, name AS nombre, description, price AS precio, category, features, image_icon, active
+            'SELECT id, name AS nombre, description, price AS precio, category,
+                    stock_actual, stock_minimo, estrategia_logistica,
+                    features, image_icon, active
              FROM productos ORDER BY id'
         )->fetchAll();
         foreach ($productos as &$producto) {
@@ -86,7 +88,7 @@ try {
         )->fetchAll();
 
         $usuarios = $pdo->query(
-            "SELECT id, COALESCE(nombre, username) AS nombre, email AS correo, telefono,
+            "SELECT id, username, nombre, email AS correo, telefono, role,
                    CASE WHEN role = 'admin' THEN 'Administrador' ELSE 'Usuario Normal' END AS tipo
              FROM usuarios ORDER BY id"
         )->fetchAll();
@@ -149,6 +151,32 @@ try {
         adminResponse(['success' => true, 'id' => $pdo->lastInsertId()], 201);
     }
 
+    if (($method === 'PUT' || $method === 'PATCH') && $action === 'cliente') {
+        $id = (int) ($input['id'] ?? 0);
+        $estado = strtolower(readStringField($input, ['estado', 'status']));
+
+        if ($id <= 0 || !in_array($estado, ['activo', 'inactivo'], true)) {
+            adminResponse(['error' => 'Cliente o estado inválido.'], 400);
+        }
+
+        $stmt = $pdo->prepare(
+            "UPDATE usuarios
+             SET estado = ?
+             WHERE id = ? AND role = 'cliente'"
+        );
+        $stmt->execute([$estado, $id]);
+
+        if ($stmt->rowCount() === 0) {
+            $exists = $pdo->prepare("SELECT id FROM usuarios WHERE id = ? AND role = 'cliente'");
+            $exists->execute([$id]);
+            if (!$exists->fetch()) {
+                adminResponse(['error' => 'Cliente no encontrado.'], 404);
+            }
+        }
+
+        adminResponse(['success' => true, 'id' => $id, 'estado' => $estado]);
+    }
+
     if ($method === 'POST' && $action === 'interaccion') {
         $clienteId = (int) (readStringField($input, ['clienteId', 'cliente_id', 'cliente']) !== '' ? (int) readStringField($input, ['clienteId', 'cliente_id', 'cliente']) : ($input['clienteId'] ?? $input['cliente_id'] ?? 0));
         $usuarioId = (int) (readStringField($input, ['usuarioId', 'usuario_id'], '0') !== '' ? (int) readStringField($input, ['usuarioId', 'usuario_id'], '0') : ($_SESSION['user_id'] ?? 0));
@@ -169,6 +197,68 @@ try {
             cleanInput($detalle)
         ]);
         adminResponse(['success' => true, 'id' => $pdo->lastInsertId()], 201);
+    }
+
+    if (($method === 'PUT' || $method === 'PATCH') && $action === 'usuario') {
+        $id = (int) ($input['id'] ?? 0);
+        $nombre = readStringField($input, ['nombre', 'name']);
+        $correo = readStringField($input, ['correo', 'email']);
+        $password = (string) ($input['password'] ?? '');
+        $telefono = readStringField($input, ['telefono', 'phone']);
+        $role = strtolower(readStringField($input, ['tipo', 'role'], 'cliente'));
+
+        if ($id <= 0 || $nombre === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+            adminResponse(['error' => 'Usuario, nombre y correo electrónico válidos son obligatorios.'], 400);
+        }
+        if ($password !== '' && strlen($password) < 6) {
+            adminResponse(['error' => 'La contraseña debe tener al menos 6 caracteres.'], 400);
+        }
+        if (!in_array($role, ['admin', 'cliente'], true)) {
+            $role = 'cliente';
+        }
+
+        $exists = $pdo->prepare('SELECT id FROM usuarios WHERE id = ?');
+        $exists->execute([$id]);
+        if (!$exists->fetch()) {
+            adminResponse(['error' => 'Usuario no encontrado.'], 404);
+        }
+
+        $duplicate = $pdo->prepare('SELECT id FROM usuarios WHERE (email = ?) AND id <> ?');
+        $duplicate->execute([$correo, $id]);
+        if ($duplicate->fetch()) {
+            adminResponse(['error' => 'El correo electrónico ya está registrado.'], 400);
+        }
+
+        if ($password !== '') {
+            $stmt = $pdo->prepare(
+                'UPDATE usuarios
+                 SET nombre = ?, email = ?, password_hash = ?, telefono = ?, role = ?
+                 WHERE id = ?'
+            );
+            $stmt->execute([
+                cleanInput($nombre),
+                cleanInput($correo),
+                password_hash($password, PASSWORD_DEFAULT),
+                cleanInput($telefono),
+                $role,
+                $id
+            ]);
+        } else {
+            $stmt = $pdo->prepare(
+                'UPDATE usuarios
+                 SET nombre = ?, email = ?, telefono = ?, role = ?
+                 WHERE id = ?'
+            );
+            $stmt->execute([
+                cleanInput($nombre),
+                cleanInput($correo),
+                cleanInput($telefono),
+                $role,
+                $id
+            ]);
+        }
+
+        adminResponse(['success' => true, 'id' => $id]);
     }
 
     if ($method === 'POST' && $action === 'usuario') {

@@ -1,5 +1,10 @@
 USE `nikenza_store`;
 
+ALTER TABLE `productos`
+  ADD COLUMN IF NOT EXISTS `stock_actual` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `category`,
+  ADD COLUMN IF NOT EXISTS `stock_minimo` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `stock_actual`,
+  ADD COLUMN IF NOT EXISTS `estrategia_logistica` VARCHAR(150) NOT NULL DEFAULT 'Reabastecimiento estándar' AFTER `stock_minimo`;
+
 ALTER TABLE `usuarios`
   ADD COLUMN IF NOT EXISTS `nombre` VARCHAR(120) DEFAULT NULL AFTER `username`,
   ADD COLUMN IF NOT EXISTS `telefono` VARCHAR(20) DEFAULT NULL AFTER `password_hash`,

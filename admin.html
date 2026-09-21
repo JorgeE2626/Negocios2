@@ -148,9 +148,6 @@
                 <div class="sidebar-link active" data-vista="resumen">
                     <div class="sidebar-link-content"><i class="fas fa-chart-pie"></i> Dashboard</div>
                 </div>
-                <div class="sidebar-link" data-vista="productos">
-                    <div class="sidebar-link-content"><i class="fas fa-box"></i> Productos</div>
-                </div>
                 <div class="sidebar-link" data-vista="ventas">
                     <div class="sidebar-link-content"><i class="fas fa-shopping-cart"></i> Ventas</div>
                 </div>
@@ -172,6 +169,17 @@
                     </div>
                     <div class="submenu-link" data-vista="usuarios">
                         <i class="fas fa-user-shield"></i> Usuarios
+                    </div>
+                </div>
+
+                <!-- Submenú SCM Desplegable -->
+                <div class="sidebar-link" id="scm-menu-toggle">
+                    <div class="sidebar-link-content"><i class="fas fa-truck-loading"></i> SCM</div>
+                    <i class="fas fa-chevron-down" id="scm-arrow"></i>
+                </div>
+                <div class="submenu" id="scm-submenu">
+                    <div class="submenu-link" data-vista="scm-productos">
+                        <i class="fas fa-boxes-stacked"></i> Lista de productos
                     </div>
                 </div>
             </nav>
@@ -205,11 +213,11 @@
                 </div>
             </div>
 
-            <!-- VISTA: PRODUCTOS -->
-            <div id="productos" class="vista">
+            <!-- VISTA: SCM - LISTA DE PRODUCTOS -->
+            <div id="scm-productos" class="vista">
                 <div class="admin-container">
                     <div class="admin-header">
-                        <h2 class="admin-title">Gestión de Productos</h2>
+                        <h2 class="admin-title">SCM - Lista de productos</h2>
                         <button class="btn btn-primary" id="btn-agregar-producto">
                             <i class="fas fa-plus"></i> Agregar Producto
                         </button>
@@ -219,6 +227,10 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Stock actual</th>
+                                <th>Stock mínimo</th>
+                                <th>Estrategia logística</th>
                                 <th>Precio</th>
                                 <th>Acciones</th>
                             </tr>
@@ -374,6 +386,26 @@
                     <input type="text" id="producto-nombre" required>
                 </div>
                 <div class="campo">
+                    <label>Descripción</label>
+                    <textarea id="producto-descripcion" rows="3" required></textarea>
+                </div>
+                <div class="campo">
+                    <label>Categoría</label>
+                    <input type="text" id="producto-categoria" required>
+                </div>
+                <div class="campo">
+                    <label>Stock actual</label>
+                    <input type="number" id="producto-stock-actual" min="0" step="1" required>
+                </div>
+                <div class="campo">
+                    <label>Stock mínimo</label>
+                    <input type="number" id="producto-stock-minimo" min="0" step="1" required>
+                </div>
+                <div class="campo">
+                    <label>Estrategia logística</label>
+                    <input type="text" id="producto-estrategia-logistica" required>
+                </div>
+                <div class="campo">
                     <label>Precio ($)</label>
                     <input type="number" id="producto-precio" step="0.01" required>
                 </div>
@@ -465,8 +497,9 @@
     <!-- MODAL AGREGAR USUARIO DE SISTEMA -->
     <div id="modal-usuario" class="modal">
         <div class="modal-contenido">
-            <h3>Agregar Usuario del Sistema</h3>
+            <h3 id="modal-usuario-titulo">Agregar Usuario del Sistema</h3>
             <form id="form-usuario">
+                <input type="hidden" id="usuario-id" value="">
                 <div class="campo">
                     <label>Nombre Completo</label>
                     <input type="text" id="usuario-nombre" class="solo-letras" placeholder="Ej. María López" required>
@@ -476,8 +509,8 @@
                     <input type="email" id="usuario-correo" placeholder="correo@ejemplo.com" required>
                 </div>
                 <div class="campo">
-                    <label>Contraseña</label>
-                    <input type="password" id="usuario-password" minlength="6" required>
+                    <label>Contraseña <small>(déjala vacía para conservarla)</small></label>
+                    <input type="password" id="usuario-password" minlength="6">
                 </div>
                 <div class="campo">
                     <label>Teléfono</label>
@@ -492,7 +525,7 @@
                 </div>
                 <div class="modal-botones">
                     <button type="button" class="btn btn-secondary btn-cerrar-modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Usuario</button>
+                    <button type="submit" class="btn btn-primary" id="btn-guardar-usuario">Guardar Usuario</button>
                 </div>
             </form>
         </div>
@@ -522,13 +555,18 @@
 
         // DOM ELEMENTS Y NAVEGACIÓN
         const vistas = document.querySelectorAll('.vista');
-        const sidebarLinks = document.querySelectorAll('.sidebar-link:not(#crm-menu-toggle)');
+        const sidebarLinks = document.querySelectorAll('.sidebar-link:not(#crm-menu-toggle):not(#scm-menu-toggle)');
         const submenuLinks = document.querySelectorAll('.submenu-link');
         const crmToggle = document.getElementById('crm-menu-toggle');
         const crmSubmenu = document.getElementById('crm-submenu');
+        const scmToggle = document.getElementById('scm-menu-toggle');
+        const scmSubmenu = document.getElementById('scm-submenu');
 
         crmToggle.addEventListener('click', () => {
             crmSubmenu.classList.toggle('activo');
+        });
+        scmToggle.addEventListener('click', () => {
+            scmSubmenu.classList.toggle('activo');
         });
 
         function mostrarVista(vistaId) {
@@ -546,12 +584,13 @@
             const activeSubmenu = document.querySelector(`.submenu-link[data-vista="${vistaId}"]`);
             if (activeSubmenu) {
                 activeSubmenu.classList.add('active');
-                crmSubmenu.classList.add('activo');
+                if (activeSubmenu.closest('#crm-submenu')) crmSubmenu.classList.add('activo');
+                if (activeSubmenu.closest('#scm-submenu')) scmSubmenu.classList.add('activo');
             }
 
             if (vistaId === 'resumen') cargarDashboard();
             if (vistaId === 'crm-resumen') cargarCRMResumen();
-            if (vistaId === 'productos') cargarProductos();
+            if (vistaId === 'scm-productos') cargarProductos();
             if (vistaId === 'ventas') cargarVentas();
             if (vistaId === 'clientes') cargarClientes();
             if (vistaId === 'interacciones') cargarInteracciones();
@@ -624,7 +663,7 @@
                 // Reutiliza los cargadores existentes sin repetir la consulta a la base de datos.
                 if (vistaActual === 'resumen') await cargarDashboard(false);
                 if (vistaActual === 'crm-resumen') await cargarCRMResumen(false);
-                if (vistaActual === 'productos') await cargarProductos(false);
+                if (vistaActual === 'scm-productos') await cargarProductos(false);
                 if (vistaActual === 'ventas') await cargarVentas(false);
                 if (vistaActual === 'clientes') await cargarClientes(false);
                 if (vistaActual === 'interacciones') await cargarInteracciones(false);
@@ -651,6 +690,10 @@
                     tr.innerHTML = `
                         <td>${p.id}</td>
                         <td>${p.name || p.nombre}</td>
+                        <td>${p.category || ''}</td>
+                        <td>${p.stock_actual ?? 0}</td>
+                        <td>${p.stock_minimo ?? 0}</td>
+                        <td>${p.estrategia_logistica || ''}</td>
                         <td>$${precioNum.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
                         <td class="acciones">
                             <button class="btn-accion btn-editar" onclick="editarProducto(${p.id})"><i class="fas fa-edit"></i> Editar</button>
@@ -705,7 +748,13 @@
                         <td>${c.empresa || 'N/A'}</td>
                         <td>${c.etapa || 'Prospecto'}</td>
                         <td>${c.ingreso || 'N/A'}</td>
-                        <td><span class="badge ${badgeClass}">${c.estado}</span></td>
+                        <td>
+                            <button class="btn-accion ${esActivo ? 'btn-editar' : 'btn-secondary'}"
+                                    onclick="cambiarEstadoCliente(event, ${c.id}, '${esActivo ? 'inactivo' : 'activo'}')"
+                                    title="Cambiar estado del cliente">
+                                <span class="badge ${badgeClass}">${c.estado}</span>
+                            </button>
+                        </td>
                         <td>
                             <button class="btn-accion btn-editar" onclick="verPerfilCliente(${c.id})"><i class="fas fa-eye"></i> Perfil</button>
                         </td>
@@ -750,7 +799,12 @@
                     const badgeRole = esAdmin ? 'badge-admin' : 'badge-user';
                     tr.innerHTML = `
                         <td>${u.id}</td>
-                        <td>${u.nombre || u.username}</td>
+                        <td>
+                            <a href="#editar-usuario" style="color:#294997; font-weight:600;"
+                               onclick="editarUsuario(event, ${u.id})">
+                                ${u.nombre || u.username}
+                            </a>
+                        </td>
                         <td>${u.correo || u.email}</td>
                         <td>${u.telefono || 'N/A'}</td>
                         <td><span class="badge ${badgeRole}">${u.tipo || u.role}</span></td>
@@ -794,6 +848,50 @@
         }
 
         // ACCIONES / EVENTOS / MODALES
+
+        async function cambiarEstadoCliente(event, id, nuevoEstado) {
+            event.preventDefault();
+
+            try {
+                const respuesta = await fetch('php/admin_api.php?action=cliente', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ id, estado: nuevoEstado })
+                });
+                const resultado = await respuesta.json();
+
+                if (!respuesta.ok || !resultado.success) {
+                    throw new Error(resultado.error || 'No se pudo cambiar el estado del cliente.');
+                }
+
+                await cargarDatosAdmin();
+                await cargarClientes(false);
+            } catch (error) {
+                console.error('Error al cambiar el estado del cliente:', error);
+                alert(error.message);
+            }
+        }
+
+        function editarUsuario(event, usuarioId) {
+            event.preventDefault();
+            const usuario = cacheUsuarios.find(item => parseInt(item.id) === parseInt(usuarioId));
+            if (!usuario) return;
+
+            document.getElementById('modal-usuario-titulo').textContent = 'Modificar Usuario';
+            document.getElementById('usuario-id').value = usuario.id;
+            document.getElementById('usuario-nombre').value = usuario.nombre || usuario.username || '';
+            document.getElementById('usuario-correo').value = usuario.correo || usuario.email || '';
+            document.getElementById('usuario-password').value = '';
+            document.getElementById('usuario-telefono').value = usuario.telefono || '';
+            document.getElementById('usuario-tipo').value =
+                (usuario.role || '').toLowerCase() === 'admin' ||
+                (usuario.tipo || '').toLowerCase().includes('admin')
+                    ? 'admin'
+                    : 'cliente';
+            document.getElementById('btn-guardar-usuario').textContent = 'Guardar Cambios';
+            document.getElementById('modal-usuario').classList.add('activo');
+        }
 
         function verPerfilCliente(id) {
             const c = cacheClientes.find(item => parseInt(item.id) === parseInt(id));
@@ -888,27 +986,37 @@
         });
 
         document.getElementById('btn-agregar-usuario').addEventListener('click', () => {
+            document.getElementById('modal-usuario-titulo').textContent = 'Agregar Usuario del Sistema';
+            document.getElementById('usuario-id').value = '';
+            document.getElementById('form-usuario').reset();
+            document.getElementById('btn-guardar-usuario').textContent = 'Guardar Usuario';
             document.getElementById('modal-usuario').classList.add('activo');
         });
 
         document.getElementById('form-usuario').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const usuarioId = document.getElementById('usuario-id').value;
+            const password = document.getElementById('usuario-password').value;
             const payload = {
+                id: usuarioId,
                 nombre: document.getElementById('usuario-nombre').value,
                 correo: document.getElementById('usuario-correo').value,
-                password: document.getElementById('usuario-password').value,
                 telefono: document.getElementById('usuario-telefono').value,
                 tipo: document.getElementById('usuario-tipo').value,
                 estado: 'activo'
             };
+            if (password) payload.password = password;
 
             const respuesta = await fetch('php/admin_api.php?action=usuario', {
-                method: 'POST',
+                method: usuarioId ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin',
                 body: JSON.stringify(payload)
             });
-            if (!respuesta.ok) throw new Error('No se pudo guardar el usuario.');
+            const resultado = await respuesta.json();
+            if (!respuesta.ok || !resultado.success) {
+                throw new Error(resultado.error || 'No se pudo guardar el usuario.');
+            }
 
             document.getElementById('form-usuario').reset();
             cerrarModales();
@@ -933,6 +1041,11 @@
             document.getElementById('modal-titulo').textContent = 'Agregar Producto';
             document.getElementById('producto-id').value = '';
             document.getElementById('producto-nombre').value = '';
+            document.getElementById('producto-descripcion').value = '';
+            document.getElementById('producto-categoria').value = '';
+            document.getElementById('producto-stock-actual').value = '0';
+            document.getElementById('producto-stock-minimo').value = '0';
+            document.getElementById('producto-estrategia-logistica').value = '';
             document.getElementById('producto-precio').value = '';
             modalProducto.classList.add('activo');
         });
@@ -943,14 +1056,32 @@
             document.getElementById('modal-titulo').textContent = 'Editar Producto';
             document.getElementById('producto-id').value = p.id;
             document.getElementById('producto-nombre').value = p.name || p.nombre;
+            document.getElementById('producto-descripcion').value = p.description || '';
+            document.getElementById('producto-categoria').value = p.category || '';
+            document.getElementById('producto-stock-actual').value = p.stock_actual ?? 0;
+            document.getElementById('producto-stock-minimo').value = p.stock_minimo ?? 0;
+            document.getElementById('producto-estrategia-logistica').value = p.estrategia_logistica || '';
             document.getElementById('producto-precio').value = p.price || p.precio;
             modalProducto.classList.add('activo');
         }
 
         function eliminarProducto(id) {
             if (confirm('¿Seguro que deseas eliminar este producto?')) {
-                fetch(`php/obtener_datos.php?action=eliminar_producto&id=${id}`, { method: 'DELETE' })
-                    .then(() => cargarProductos());
+                fetch('php/admin_products.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ id })
+                })
+                    .then(async response => {
+                        const result = await response.json();
+                        if (!response.ok || !result.success) {
+                            throw new Error(result.error || 'No se pudo eliminar el producto.');
+                        }
+                        await cargarDatosAdmin();
+                        await cargarProductos(false);
+                    })
+                    .catch(error => alert(error.message));
             }
         }
 
@@ -958,17 +1089,27 @@
             e.preventDefault();
             const payload = {
                 id: document.getElementById('producto-id').value,
-                nombre: document.getElementById('producto-nombre').value.trim(),
-                precio: parseFloat(document.getElementById('producto-precio').value)
+                name: document.getElementById('producto-nombre').value.trim(),
+                description: document.getElementById('producto-descripcion').value.trim(),
+                category: document.getElementById('producto-categoria').value.trim(),
+                stock_actual: parseInt(document.getElementById('producto-stock-actual').value, 10),
+                stock_minimo: parseInt(document.getElementById('producto-stock-minimo').value, 10),
+                estrategia_logistica: document.getElementById('producto-estrategia-logistica').value.trim(),
+                price: parseFloat(document.getElementById('producto-precio').value)
             };
 
-            await fetch('php/obtener_datos.php?action=guardar_producto', {
-                method: 'POST',
+            const respuesta = await fetch('php/admin_products.php', {
+                method: payload.id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+            const resultado = await respuesta.json();
+            if (!respuesta.ok || !resultado.success) {
+                throw new Error(resultado.error || 'No se pudo guardar el producto.');
+            }
 
-            cargarProductos();
+            await cargarDatosAdmin();
+            cargarProductos(false);
             cerrarModales();
         });
 
