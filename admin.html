@@ -227,6 +227,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Nombre</th>
+                                <th>Descripción</th>
                                 <th>Categoría</th>
                                 <th>Stock actual</th>
                                 <th>Stock mínimo</th>
@@ -690,6 +691,7 @@
                     tr.innerHTML = `
                         <td>${p.id}</td>
                         <td>${p.name || p.nombre}</td>
+                        <td>${p.description || ''}</td>
                         <td>${p.category || ''}</td>
                         <td>${p.stock_actual ?? 0}</td>
                         <td>${p.stock_minimo ?? 0}</td>
