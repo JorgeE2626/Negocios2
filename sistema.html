@@ -812,6 +812,8 @@
         async function register(event) {
             event.preventDefault();
 
+            const username = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
             const p1 = document.getElementById('registerPassword').value;
             const p2 = document.getElementById('registerConfirmPassword').value;
 
@@ -820,10 +822,32 @@
                 return;
             }
 
-            showSuccessBanner("Registro exitoso");
-            closeModal('registerModal');
+            try {
+                const response = await fetch('php/register.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password: p1
+                    })
+                });
+                const data = await response.json();
 
-            setTimeout(() => { showLoginModal(); }, 800);
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'No se pudo completar el registro.');
+                }
+
+                document.getElementById('registerModal').querySelector('form').reset();
+                closeModal('registerModal');
+                showSuccessBanner("Registro exitoso. Ahora inicia sesión.");
+                setTimeout(() => { showLoginModal(); }, 800);
+            } catch (error) {
+                showSuccessBanner(error.message);
+            }
         }
 
         async function adminLogin(event) {
@@ -849,6 +873,9 @@
                 showSuccessBanner("Bienvenido a Intranet");
                 closeModal('adminModal');
                 updateUIForLoggedInUser();
+                setTimeout(() => {
+                    window.location.href = 'admin.html';
+                }, 800);
             } catch (error) {
                 showSuccessBanner(error.message);
             }
