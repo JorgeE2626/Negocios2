@@ -63,13 +63,14 @@ function normalizeInteractionType($value): ?string
 
 try {
     $pdo = getDBConnection();
+    ensureProductSchema($pdo);
     $method = $_SERVER['REQUEST_METHOD'];
     $action = strtolower((string) ($_GET['action'] ?? ''));
     $input = adminInput();
 
     if ($method === 'GET') {
         $productos = $pdo->query(
-            'SELECT id, name AS nombre, description, price AS precio, category,
+            'SELECT id, name AS nombre, description, price AS precio, category, proveedor,
                     stock_actual, stock_minimo, estrategia_logistica,
                     features, image_icon, active
              FROM productos ORDER BY id'

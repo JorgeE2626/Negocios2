@@ -61,6 +61,7 @@ CREATE TABLE `productos` (
   `description` text DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
   `category` varchar(50) NOT NULL,
+  `proveedor` varchar(150) NOT NULL DEFAULT '',
   `stock_actual` int(10) unsigned NOT NULL DEFAULT 0,
   `stock_minimo` int(10) unsigned NOT NULL DEFAULT 0,
   `estrategia_logistica` varchar(150) NOT NULL DEFAULT 'Reabastecimiento estándar',

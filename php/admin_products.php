@@ -12,6 +12,7 @@ if (!isLoggedIn() || !isAdmin()) {
 
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = getDBConnection();
+ensureProductSchema($pdo);
 
 try {
     switch ($method) {
@@ -41,14 +42,15 @@ try {
             }
             
             // Validar datos requeridos
-            if (!isset($input['name'], $input['description'], $input['price'], $input['category'])
+            if (!isset($input['name'], $input['description'], $input['price'], $input['category'], $input['proveedor'])
                 || trim((string) $input['name']) === ''
                 || trim((string) $input['description']) === ''
                 || trim((string) $input['category']) === ''
+                || trim((string) $input['proveedor']) === ''
                 || !is_numeric($input['price'])
                 || (float) $input['price'] < 0) {
                 http_response_code(400);
-                echo json_encode(['error' => 'Faltan datos requeridos (name, description, price, category)']);
+                echo json_encode(['error' => 'Faltan datos requeridos (name, description, price, category, proveedor)']);
                 exit();
             }
             
@@ -56,6 +58,7 @@ try {
             $description = cleanInput($input['description'] ?? '');
             $price = floatval($input['price']);
             $category = cleanInput($input['category']);
+            $proveedor = cleanInput($input['proveedor']);
             $stock_actual = filter_var($input['stock_actual'] ?? 0, FILTER_VALIDATE_INT);
             $stock_minimo = filter_var($input['stock_minimo'] ?? 0, FILTER_VALIDATE_INT);
             $estrategia_logistica = cleanInput($input['estrategia_logistica'] ?? '');
@@ -68,8 +71,8 @@ try {
             $image_icon = cleanInput($input['image_icon'] ?? '');
             $active = isset($input['active']) ? (bool)$input['active'] : true;
             
-            $stmt = $pdo->prepare("INSERT INTO productos (name, description, price, category, stock_actual, stock_minimo, estrategia_logistica, features, image_icon, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$name, $description, $price, $category, $stock_actual, $stock_minimo, $estrategia_logistica, $features, $image_icon, $active]);
+            $stmt = $pdo->prepare("INSERT INTO productos (name, description, price, category, proveedor, stock_actual, stock_minimo, estrategia_logistica, features, image_icon, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$name, $description, $price, $category, $proveedor, $stock_actual, $stock_minimo, $estrategia_logistica, $features, $image_icon, $active]);
             
             $product_id = $pdo->lastInsertId();
             
@@ -127,6 +130,16 @@ try {
             if (isset($input['category'])) {
                 $updates[] = "category = ?";
                 $params[] = cleanInput($input['category']);
+            }
+            if (isset($input['proveedor'])) {
+                $proveedor = cleanInput($input['proveedor']);
+                if ($proveedor === '') {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'El proveedor es obligatorio']);
+                    exit();
+                }
+                $updates[] = "proveedor = ?";
+                $params[] = $proveedor;
             }
             if (isset($input['stock_actual'])) {
                 $stockActual = filter_var($input['stock_actual'], FILTER_VALIDATE_INT);

@@ -32,6 +32,14 @@ function getDBConnection() {
     } catch (PDOException $e) {
         die("Error de conexión a la base de datos: " . $e->getMessage());
     }
+
+}
+
+function ensureProductSchema(PDO $pdo): void {
+    $column = $pdo->query("SHOW COLUMNS FROM productos LIKE 'proveedor'")->fetch();
+    if (!$column) {
+        $pdo->exec("ALTER TABLE productos ADD COLUMN proveedor VARCHAR(150) NOT NULL DEFAULT '' AFTER category");
+    }
 }
 
 // Función para verificar si el usuario está logueado
@@ -83,4 +91,3 @@ function verifyCSRFToken($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 ?>
-

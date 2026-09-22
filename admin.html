@@ -63,6 +63,7 @@
         .admin-container {
             background: white; padding: 25px; border-radius: 12px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+            min-width: 0;
         }
         .admin-header {
             display: flex; justify-content: space-between; align-items: center;
@@ -79,18 +80,31 @@
         .btn-secondary { background: #e7e9f3; color: #0d1b3d; }
         .btn-danger { background: #dc3545; color: white; }
 
+        .tabla-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
         .tabla-datos { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .tabla-datos th, .tabla-datos td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
         .tabla-datos th { background: #f8f9ff; color: #0d1b3d; font-weight: 600; }
         .tabla-datos tr:hover { background: #f5f5f5; }
+        .tabla-productos { min-width: 1180px; }
 
-        .acciones { display: flex; gap: 8px; }
+        .acciones { display: flex; gap: 8px; min-width: 220px; white-space: nowrap; }
         .btn-accion {
             padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer;
             font-size: 13px; display: inline-flex; align-items: center; gap: 5px;
         }
         .btn-editar { background: #ffc107; color: #333; }
         .btn-eliminar { background: #dc3545; color: white; }
+        .btn-estrategia-push { background: #198754; color: white; }
+        .btn-estrategia-pull { background: #0d6efd; color: white; }
+
+        @media (max-width: 700px) {
+            .admin-main { padding: 12px; }
+            .admin-container { padding: 16px; }
+            .admin-header { align-items: stretch; }
+            .admin-title { font-size: 20px; }
+            .admin-header .btn { justify-content: center; }
+            .tabla-productos { min-width: 1080px; }
+        }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -222,13 +236,15 @@
                             <i class="fas fa-plus"></i> Agregar Producto
                         </button>
                     </div>
-                    <table class="tabla-datos">
+                    <div class="tabla-responsive">
+                    <table class="tabla-datos tabla-productos">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Descripción</th>
                                 <th>Categoría</th>
+                                <th>Proveedor</th>
                                 <th>Stock actual</th>
                                 <th>Stock mínimo</th>
                                 <th>Estrategia logística</th>
@@ -238,6 +254,7 @@
                         </thead>
                         <tbody id="tabla-productos-body"></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -395,6 +412,10 @@
                     <input type="text" id="producto-categoria" required>
                 </div>
                 <div class="campo">
+                    <label>Nombre del proveedor</label>
+                    <input type="text" id="producto-proveedor" required>
+                </div>
+                <div class="campo">
                     <label>Stock actual</label>
                     <input type="number" id="producto-stock-actual" min="0" step="1" required>
                 </div>
@@ -404,7 +425,10 @@
                 </div>
                 <div class="campo">
                     <label>Estrategia logística</label>
-                    <input type="text" id="producto-estrategia-logistica" required>
+                    <select id="producto-estrategia-logistica" required>
+                        <option value="Push">Push</option>
+                        <option value="Pull">Pull</option>
+                    </select>
                 </div>
                 <div class="campo">
                     <label>Precio ($)</label>
@@ -687,7 +711,7 @@
 
                 if (cacheProductos.length === 0) {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = '<td colspan="9" style="text-align:center;">No hay productos guardados.</td>';
+                    tr.innerHTML = '<td colspan="10" style="text-align:center;">No hay productos guardados.</td>';
                     tbody.appendChild(tr);
                     return;
                 }
@@ -695,14 +719,22 @@
                 cacheProductos.forEach(p => {
                     const tr = document.createElement('tr');
                     const precioNum = parseFloat(p.price || p.precio || 0);
+                    const estrategia = String(p.estrategia_logistica || '').toLowerCase() === 'pull' ? 'Pull' : 'Push';
                     tr.innerHTML = `
                         <td>${p.id}</td>
                         <td>${p.name || p.nombre}</td>
                         <td>${p.description || ''}</td>
                         <td>${p.category || ''}</td>
+                        <td>${p.proveedor || ''}</td>
                         <td>${p.stock_actual ?? 0}</td>
                         <td>${p.stock_minimo ?? 0}</td>
-                        <td>${p.estrategia_logistica || ''}</td>
+                        <td>
+                            <button type="button" class="btn-accion btn-estrategia-${estrategia.toLowerCase()}"
+                                onclick="cambiarEstrategiaProducto(${p.id})"
+                                aria-label="Cambiar estrategia de ${estrategia} a ${estrategia === 'Push' ? 'Pull' : 'Push'}">
+                                ${estrategia}
+                            </button>
+                        </td>
                         <td>$${precioNum.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
                         <td class="acciones">
                             <button class="btn-accion btn-editar" onclick="editarProducto(${p.id})"><i class="fas fa-edit"></i> Editar</button>
@@ -714,7 +746,34 @@
             } catch (e) {
                 console.error("Error al cargar productos:", e);
                 const tbody = document.getElementById('tabla-productos-body');
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#dc3545;">No se pudieron cargar los productos. Inicia sesión como administrador.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#dc3545;">No se pudieron cargar los productos. Inicia sesión como administrador.</td></tr>';
+            }
+        }
+
+        async function cambiarEstrategiaProducto(id) {
+            const producto = cacheProductos.find(item => parseInt(item.id, 10) === parseInt(id, 10));
+            if (!producto) return;
+
+            const estrategiaActual = String(producto.estrategia_logistica || '').toLowerCase() === 'pull' ? 'Pull' : 'Push';
+            const nuevaEstrategia = estrategiaActual === 'Push' ? 'Pull' : 'Push';
+
+            try {
+                const respuesta = await fetch('php/admin_products.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ id, estrategia_logistica: nuevaEstrategia })
+                });
+                const resultado = await respuesta.json();
+                if (!respuesta.ok || !resultado.success) {
+                    throw new Error(resultado.error || 'No se pudo cambiar la estrategia logística.');
+                }
+
+                producto.estrategia_logistica = nuevaEstrategia;
+                await cargarProductos(false);
+            } catch (error) {
+                console.error('Error al cambiar la estrategia logística:', error);
+                alert(error.message || 'No se pudo cambiar la estrategia logística.');
             }
         }
 
@@ -1054,9 +1113,10 @@
             document.getElementById('producto-nombre').value = '';
             document.getElementById('producto-descripcion').value = '';
             document.getElementById('producto-categoria').value = '';
+            document.getElementById('producto-proveedor').value = '';
             document.getElementById('producto-stock-actual').value = '0';
             document.getElementById('producto-stock-minimo').value = '0';
-            document.getElementById('producto-estrategia-logistica').value = '';
+            document.getElementById('producto-estrategia-logistica').value = 'Push';
             document.getElementById('producto-precio').value = '';
             modalProducto.classList.add('activo');
         });
@@ -1069,9 +1129,11 @@
             document.getElementById('producto-nombre').value = p.name || p.nombre;
             document.getElementById('producto-descripcion').value = p.description || '';
             document.getElementById('producto-categoria').value = p.category || '';
+            document.getElementById('producto-proveedor').value = p.proveedor || '';
             document.getElementById('producto-stock-actual').value = p.stock_actual ?? 0;
             document.getElementById('producto-stock-minimo').value = p.stock_minimo ?? 0;
-            document.getElementById('producto-estrategia-logistica').value = p.estrategia_logistica || '';
+            document.getElementById('producto-estrategia-logistica').value =
+                String(p.estrategia_logistica || '').toLowerCase() === 'pull' ? 'Pull' : 'Push';
             document.getElementById('producto-precio').value = p.price || p.precio;
             modalProducto.classList.add('activo');
         }
@@ -1103,6 +1165,7 @@
                 name: document.getElementById('producto-nombre').value.trim(),
                 description: document.getElementById('producto-descripcion').value.trim(),
                 category: document.getElementById('producto-categoria').value.trim(),
+                proveedor: document.getElementById('producto-proveedor').value.trim(),
                 stock_actual: parseInt(document.getElementById('producto-stock-actual').value, 10),
                 stock_minimo: parseInt(document.getElementById('producto-stock-minimo').value, 10),
                 estrategia_logistica: document.getElementById('producto-estrategia-logistica').value.trim(),
