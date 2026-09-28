@@ -102,6 +102,56 @@ function ensurePurchaseOrderSchema(PDO $pdo): void {
     );
 }
 
+function createAutomaticPushOrder(PDO $pdo, array $product, int $stockActualizado, ?int $usuarioId): ?array
+{
+    if (strtolower(trim((string) ($product['estrategia_logistica'] ?? ''))) === 'pull') {
+        return null;
+    }
+
+    $stockMaximo = (int) ($product['stock_maximo'] ?? 0);
+    if ($stockMaximo <= 0) {
+        return null;
+    }
+
+    $pedidosPendientes = $pdo->prepare(
+        "SELECT COALESCE(SUM(cantidad), 0)
+         FROM pedidos_reposicion
+         WHERE producto_id = ? AND tipo = 'reposicion'
+           AND estado IN ('pendiente', 'en_proceso')"
+    );
+    $pedidosPendientes->execute([$product['id']]);
+    $cantidadPendiente = (int) $pedidosPendientes->fetchColumn();
+    $cantidad = $stockMaximo - $stockActualizado - $cantidadPendiente;
+    if ($cantidad <= 0) {
+        return null;
+    }
+
+    $insertar = $pdo->prepare(
+        "INSERT INTO pedidos_reposicion
+            (folio, producto_id, proveedor, cantidad, tipo, estado, fecha_pedido, notas, usuario_id)
+         VALUES (?, ?, ?, ?, 'reposicion', 'pendiente', CURDATE(), ?, ?)"
+    );
+    $insertar->execute([
+        'TMP-' . bin2hex(random_bytes(12)),
+        $product['id'],
+        (string) ($product['proveedor'] ?? ''),
+        $cantidad,
+        'Pedido automático por estrategia Push',
+        $usuarioId
+    ]);
+    $pedidoId = (int) $pdo->lastInsertId();
+    $folio = 'PA-' . str_pad((string) $pedidoId, 3, '0', STR_PAD_LEFT);
+    $actualizarFolio = $pdo->prepare('UPDATE pedidos_reposicion SET folio = ? WHERE id = ?');
+    $actualizarFolio->execute([$folio, $pedidoId]);
+
+    return [
+        'id' => $pedidoId,
+        'folio' => $folio,
+        'producto' => (string) ($product['name'] ?? 'Producto'),
+        'cantidad' => $cantidad
+    ];
+}
+
 // Función para verificar si el usuario está logueado
 function isLoggedIn() {
     return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);

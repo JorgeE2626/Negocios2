@@ -328,7 +328,8 @@ try {
 
             if ($nuevoEstado === 'surtido') {
                 $productoStmt = $pdo->prepare(
-                    'SELECT id, stock_actual, stock_maximo FROM productos WHERE id = ? FOR UPDATE'
+                    'SELECT id, name, proveedor, stock_actual, stock_maximo, estrategia_logistica
+                     FROM productos WHERE id = ? FOR UPDATE'
                 );
                 $productoStmt->execute([$pedido['producto_id']]);
                 $producto = $productoStmt->fetch();
@@ -365,6 +366,14 @@ try {
                     $pedido['cantidad'],
                     'Pedido ' . $pedido['folio']
                 ]);
+                if (!$esReposicion) {
+                    $pedidoAutomatico = createAutomaticPushOrder(
+                        $pdo,
+                        $producto,
+                        $nuevoStock,
+                        (int) ($_SESSION['user_id'] ?? 0) ?: null
+                    );
+                }
             }
 
             $actualizarPedido = $pdo->prepare('UPDATE pedidos_reposicion SET estado = ? WHERE id = ?');
@@ -377,7 +386,12 @@ try {
             throw $e;
         }
 
-        adminResponse(['success' => true, 'id' => $pedidoId, 'estado' => $nuevoEstado]);
+        adminResponse([
+            'success' => true,
+            'id' => $pedidoId,
+            'estado' => $nuevoEstado,
+            'pedidoAutomatico' => $pedidoAutomatico ?? null
+        ]);
     }
 
     if ($method === 'POST' && $action === 'movimiento') {
@@ -394,7 +408,10 @@ try {
 
         $pdo->beginTransaction();
         try {
-            $stmt = $pdo->prepare('SELECT id, stock_actual, stock_maximo FROM productos WHERE id = ? FOR UPDATE');
+            $stmt = $pdo->prepare(
+                'SELECT id, name, proveedor, stock_actual, stock_maximo, estrategia_logistica
+                 FROM productos WHERE id = ? FOR UPDATE'
+            );
             $stmt->execute([$productoId]);
             $producto = $stmt->fetch();
             if (!$producto) {
@@ -431,6 +448,14 @@ try {
                 $motivo
             ]);
             $movimientoId = $pdo->lastInsertId();
+            $pedidoAutomatico = $tipo === 'salida'
+                ? createAutomaticPushOrder(
+                    $pdo,
+                    $producto,
+                    $stockActualizado,
+                    (int) ($_SESSION['user_id'] ?? 0) ?: null
+                )
+                : null;
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) {
@@ -442,7 +467,8 @@ try {
         adminResponse([
             'success' => true,
             'id' => $movimientoId,
-            'stock_actual' => $stockActualizado
+            'stock_actual' => $stockActualizado,
+            'pedidoAutomatico' => $pedidoAutomatico
         ], 201);
     }
 

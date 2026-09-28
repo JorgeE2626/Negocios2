@@ -13,6 +13,7 @@ if (!isLoggedIn() || !isAdmin()) {
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = getDBConnection();
 ensureProductSchema($pdo);
+ensurePurchaseOrderSchema($pdo);
 
 try {
     switch ($method) {
@@ -80,22 +81,37 @@ try {
             $image_icon = cleanInput($input['image_icon'] ?? '');
             $active = isset($input['active']) ? (bool)$input['active'] : true;
             
-            $stmt = $pdo->prepare("INSERT INTO productos (name, description, price, category, proveedor, ubicacion, stock_actual, stock_minimo, stock_maximo, estrategia_logistica, features, image_icon, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$name, $description, $price, $category, $proveedor, $ubicacion, $stock_actual, $stock_minimo, $stock_maximo, $estrategia_logistica, $features, $image_icon, $active]);
-            
-            $product_id = $pdo->lastInsertId();
-            
-            // Obtener el producto creado
-            $stmt = $pdo->prepare("SELECT * FROM productos WHERE id = ?");
-            $stmt->execute([$product_id]);
-            $producto = $stmt->fetch();
+            $pdo->beginTransaction();
+            try {
+                $stmt = $pdo->prepare("INSERT INTO productos (name, description, price, category, proveedor, ubicacion, stock_actual, stock_minimo, stock_maximo, estrategia_logistica, features, image_icon, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$name, $description, $price, $category, $proveedor, $ubicacion, $stock_actual, $stock_minimo, $stock_maximo, $estrategia_logistica, $features, $image_icon, $active]);
+
+                $product_id = $pdo->lastInsertId();
+                $stmt = $pdo->prepare("SELECT * FROM productos WHERE id = ?");
+                $stmt->execute([$product_id]);
+                $producto = $stmt->fetch();
+                $pedidoAutomatico = createAutomaticPushOrder(
+                    $pdo,
+                    $producto,
+                    (int) $producto['stock_actual'],
+                    (int) ($_SESSION['user_id'] ?? 0) ?: null
+                );
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $e;
+            }
+
             $producto['features'] = json_decode($producto['features'], true) ?: [];
             
             http_response_code(201);
             echo json_encode([
                 'success' => true,
                 'message' => 'Producto creado exitosamente',
-                'producto' => $producto
+                'producto' => $producto,
+                'pedidoAutomatico' => $pedidoAutomatico
             ]);
             break;
             
@@ -219,21 +235,48 @@ try {
                 exit();
             }
             
-            $params[] = $id;
-            $sql = "UPDATE productos SET " . implode(', ', $updates) . " WHERE id = ?";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-            
-            // Obtener el producto actualizado
-            $stmt = $pdo->prepare("SELECT * FROM productos WHERE id = ?");
-            $stmt->execute([$id]);
-            $producto = $stmt->fetch();
+            $pdo->beginTransaction();
+            try {
+                $bloquearProducto = $pdo->prepare(
+                    'SELECT id FROM productos WHERE id = ? FOR UPDATE'
+                );
+                $bloquearProducto->execute([$id]);
+                if (!$bloquearProducto->fetch()) {
+                    $pdo->rollBack();
+                    http_response_code(404);
+                    echo json_encode(['error' => 'Producto no encontrado']);
+                    exit();
+                }
+
+                $params[] = $id;
+                $sql = "UPDATE productos SET " . implode(', ', $updates) . " WHERE id = ?";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
+
+                $stmt = $pdo->prepare('SELECT * FROM productos WHERE id = ?');
+                $stmt->execute([$id]);
+                $producto = $stmt->fetch();
+                $pedidoAutomatico = createAutomaticPushOrder(
+                    $pdo,
+                    $producto,
+                    (int) $producto['stock_actual'],
+                    (int) ($_SESSION['user_id'] ?? 0) ?: null
+                );
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $e;
+            }
+
             $producto['features'] = json_decode($producto['features'], true) ?: [];
             
             echo json_encode([
                 'success' => true,
                 'message' => 'Producto actualizado exitosamente',
-                'producto' => $producto
+                'producto' => $producto,
+                'pedidoAutomatico' => $pedidoAutomatico
             ]);
             break;
             

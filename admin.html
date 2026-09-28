@@ -149,6 +149,7 @@
             max-width: 550px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;
         }
         .modal-contenido h3 { margin-bottom: 20px; color: #0d1b3d; }
+        .notificacion-pedido { margin: 0; color: #333; }
         .campo { margin-bottom: 20px; }
         .campo label { display: block; margin-bottom: 5px; font-weight: 500; color: #333; }
         .campo input, .campo select, .campo textarea {
@@ -822,6 +823,16 @@
         </div>
     </div>
 
+    <div id="modal-notificacion-pedido" class="modal" role="dialog" aria-modal="true" aria-labelledby="notificacion-pedido-titulo">
+        <div class="modal-contenido">
+            <h3 id="notificacion-pedido-titulo">Pedido automático</h3>
+            <p id="notificacion-pedido-mensaje" class="notificacion-pedido"></p>
+            <div class="modal-botones">
+                <button type="button" id="btn-ok-pedido-automatico" class="btn btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL PROVEEDOR -->
     <div id="modal-proveedor" class="modal">
         <div class="modal-contenido">
@@ -1350,14 +1361,11 @@
 
                     const acciones = document.createElement('td');
                     acciones.className = 'acciones';
-                    if (pedido.estado === 'pendiente') {
-                        acciones.appendChild(crearAccionPedido(pedido.id, 'en_proceso', 'En proceso', 'btn-editar'));
-                    }
                     if (pedido.estado === 'pendiente' || pedido.estado === 'en_proceso') {
                         acciones.appendChild(crearAccionPedido(
                             pedido.id,
                             'surtido',
-                            pedido.tipo === 'reposicion' ? 'Recibir' : 'Completar',
+                            pedido.tipo === 'reposicion' ? 'Recibido' : 'Completar',
                             'btn-estrategia-push'
                         ));
                         acciones.appendChild(crearAccionPedido(pedido.id, 'cancelado', 'Cancelar', 'btn-eliminar'));
@@ -1379,19 +1387,22 @@
             boton.type = 'button';
             boton.className = `btn-accion ${clase}`;
             boton.textContent = texto;
-            boton.addEventListener('click', () => actualizarEstadoPedido(id, estado));
+            boton.addEventListener('click', () => actualizarEstadoPedido(id, estado, boton));
             return boton;
         }
 
-        async function actualizarEstadoPedido(id, estado) {
+        async function actualizarEstadoPedido(id, estado, boton) {
             const pedido = cachePedidos.find(item => Number(item.id) === Number(id));
             const confirmacion = estado === 'surtido'
                 ? (pedido?.tipo === 'reposicion'
                     ? '¿Confirmas que se recibió el pedido? Se actualizará el inventario.'
                     : '¿Confirmas que se completó la venta? Se descontará del inventario.')
-                : estado === 'cancelado' ? '¿Deseas cancelar este pedido?' : null;
+                : estado === 'cancelado'
+                    ? '¿Deseas cancelar este pedido? No se modificará el inventario.'
+                    : null;
             if (confirmacion && !window.confirm(confirmacion)) return;
 
+            boton.disabled = true;
             try {
                 const respuesta = await fetch('php/admin_api.php?action=pedido', {
                     method: 'PATCH',
@@ -1403,12 +1414,34 @@
                 if (!respuesta.ok || !resultado.success) {
                     throw new Error(resultado.error || 'No se pudo actualizar el pedido.');
                 }
+                mostrarNotificacionPedidoAutomatico(resultado.pedidoAutomatico);
                 await cargarDatosAdmin();
                 await cargarPedidos(false);
+                if (estado === 'cancelado') {
+                    mostrarNotificacionPedido('Pedido cancelado', 'El pedido se canceló correctamente. El inventario no fue modificado.');
+                }
             } catch (error) {
                 console.error('Error al actualizar pedido:', error);
                 alert(error.message || 'No se pudo actualizar el pedido.');
+            } finally {
+                boton.disabled = false;
             }
+        }
+
+        function mostrarNotificacionPedidoAutomatico(pedido) {
+            if (!pedido) return;
+            const cantidad = Number(pedido.cantidad);
+            const unidad = cantidad === 1 ? 'unidad' : 'unidades';
+            mostrarNotificacionPedido(
+                'Pedido automático',
+                `Se hizo el pedido automático de ${cantidad} ${unidad} de ${pedido.producto}.`
+            );
+        }
+
+        function mostrarNotificacionPedido(titulo, mensaje) {
+            document.getElementById('notificacion-pedido-titulo').textContent = titulo;
+            document.getElementById('notificacion-pedido-mensaje').textContent = mensaje;
+            document.getElementById('modal-notificacion-pedido').classList.add('activo');
         }
 
         function actualizarProveedoresPedido(proveedorSeleccionado = '') {
@@ -1631,6 +1664,7 @@
 
                 document.getElementById('modal-movimiento').classList.remove('activo');
                 document.getElementById('form-movimiento').reset();
+                mostrarNotificacionPedidoAutomatico(resultado.pedidoAutomatico);
                 await cargarDatosAdmin();
                 await cargarMovimientos(false);
             } catch (error) {
@@ -1681,6 +1715,7 @@
                 await cargarDatosAdmin();
                 await cargarInventario(false);
                 document.getElementById('modal-inventario').classList.remove('activo');
+                mostrarNotificacionPedidoAutomatico(resultado.pedidoAutomatico);
             } catch (error) {
                 console.error('Error al editar inventario:', error);
                 alert(error.message || 'No se pudo actualizar el inventario.');
@@ -2219,11 +2254,16 @@
                 await cargarProductos(false);
             }
             cerrarModales();
+            mostrarNotificacionPedidoAutomatico(resultado.pedidoAutomatico);
         });
 
         function cerrarModales() {
             document.querySelectorAll('.modal').forEach(m => m.classList.remove('activo'));
         }
+
+        document.getElementById('btn-ok-pedido-automatico').addEventListener('click', () => {
+            document.getElementById('modal-notificacion-pedido').classList.remove('activo');
+        });
 
         document.querySelectorAll('.btn-cerrar-modal').forEach(btn => {
             btn.addEventListener('click', cerrarModales);
