@@ -40,6 +40,52 @@ function readStringField(array $input, array $keys, string $default = ''): strin
     return $default;
 }
 
+function normalizeProviderProducts($value): array
+{
+    if (is_string($value)) {
+        $value = preg_split('/\r\n|\r|\n/', $value);
+    }
+    if (!is_array($value)) {
+        throw new InvalidArgumentException('La lista de productos no es válida.');
+    }
+
+    $products = [];
+    foreach ($value as $product) {
+        if (!is_string($product)) {
+            throw new InvalidArgumentException('Cada producto debe ser texto.');
+        }
+        $product = trim($product);
+        if ($product !== '' && !in_array($product, $products, true)) {
+            $products[] = $product;
+        }
+    }
+
+    return $products;
+}
+
+function syncProviderProducts(PDO $pdo, string $provider, array $products): void
+{
+    $findProduct = $pdo->prepare(
+        'SELECT id FROM productos WHERE name = ? AND proveedor = ? LIMIT 1'
+    );
+    $createProduct = $pdo->prepare(
+        "INSERT INTO productos
+            (name, description, price, category, proveedor, stock_actual, stock_minimo,
+             estrategia_logistica, features, image_icon, active)
+         VALUES (?, 'Pendiente de completar', 0, 'Pendiente', ?, 0, 0, 'Push', '[]', '', 0)"
+    );
+
+    foreach ($products as $product) {
+        if (mb_strlen($product, 'UTF-8') > 100) {
+            throw new InvalidArgumentException('El nombre de cada producto no puede superar 100 caracteres.');
+        }
+        $findProduct->execute([$product, $provider]);
+        if (!$findProduct->fetch()) {
+            $createProduct->execute([$product, $provider]);
+        }
+    }
+}
+
 function normalizeInteractionType($value): ?string
 {
     $normalized = strtolower(trim((string) $value));
@@ -64,14 +110,29 @@ function normalizeInteractionType($value): ?string
 try {
     $pdo = getDBConnection();
     ensureProductSchema($pdo);
+    ensureProviderSchema($pdo);
+    ensureInventoryMovementSchema($pdo);
+    ensurePurchaseOrderSchema($pdo);
     $method = $_SERVER['REQUEST_METHOD'];
     $action = strtolower((string) ($_GET['action'] ?? ''));
     $input = adminInput();
 
     if ($method === 'GET') {
+        $demandaPorProducto = [];
+        $demandaQuery = $pdo->query(
+            "SELECT producto_id, COUNT(*) AS ventas_recientes
+             FROM ventas
+             WHERE fecha >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+               AND producto_id IS NOT NULL
+             GROUP BY producto_id"
+        )->fetchAll();
+        foreach ($demandaQuery as $demanda) {
+            $demandaPorProducto[$demanda['producto_id']] = (int) $demanda['ventas_recientes'];
+        }
+
         $productos = $pdo->query(
-            'SELECT id, name AS nombre, description, price AS precio, category, proveedor,
-                    stock_actual, stock_minimo, estrategia_logistica,
+            'SELECT id, name AS nombre, description, price AS precio, category, proveedor, ubicacion,
+                    stock_actual, stock_minimo, stock_maximo, estrategia_logistica,
                     features, image_icon, active
              FROM productos ORDER BY id'
         )->fetchAll();
@@ -123,7 +184,374 @@ try {
              LEFT JOIN productos p ON p.id = v.producto_id ORDER BY v.fecha DESC, v.id DESC"
         )->fetchAll();
 
-        adminResponse(compact('productos', 'clientes', 'usuarios', 'interacciones', 'ventas'));
+        $movimientos = $pdo->query(
+            "SELECT m.id, m.producto_id, p.name AS producto, m.tipo, m.cantidad, m.motivo,
+                    DATE_FORMAT(m.fecha, '%d/%m/%Y %H:%i') AS fecha,
+                    COALESCE(u.nombre, u.username, 'Sistema') AS usuario
+             FROM movimientos_inventario m
+             LEFT JOIN productos p ON p.id = m.producto_id
+             LEFT JOIN usuarios u ON u.id = m.usuario_id
+             ORDER BY m.fecha DESC, m.id DESC"
+        )->fetchAll();
+
+        $pedidos = $pdo->query(
+            "SELECT o.id, o.folio, o.producto_id, p.name AS producto, o.proveedor, o.cantidad,
+                    o.tipo, o.estado, DATE_FORMAT(o.fecha_pedido, '%d/%m/%Y') AS fecha,
+                    o.notas, COALESCE(u.nombre, u.username, 'Sistema') AS usuario
+             FROM pedidos_reposicion o
+             LEFT JOIN productos p ON p.id = o.producto_id
+             LEFT JOIN usuarios u ON u.id = o.usuario_id
+             ORDER BY o.fecha_creacion DESC, o.id DESC"
+        )->fetchAll();
+
+        $proveedores = $pdo->query(
+            'SELECT id, nombre, contacto, email, telefono, productos FROM proveedores ORDER BY nombre'
+        )->fetchAll();
+        $proveedoresPorNombre = [];
+        foreach ($proveedores as &$proveedor) {
+            $proveedor['productos'] = normalizeProviderProducts(
+                json_decode($proveedor['productos'] ?? '[]', true) ?? []
+            );
+            $proveedoresPorNombre[mb_strtolower(trim($proveedor['nombre']), 'UTF-8')] = true;
+        }
+        unset($proveedor);
+
+        $productosPorProveedor = [];
+        $productosConProveedor = $pdo->query(
+            "SELECT name, proveedor FROM productos
+             WHERE TRIM(COALESCE(proveedor, '')) <> ''
+             ORDER BY proveedor, name"
+        )->fetchAll();
+        foreach ($productosConProveedor as $producto) {
+            $nombreProveedor = trim($producto['proveedor']);
+            $clave = mb_strtolower($nombreProveedor, 'UTF-8');
+            if (isset($proveedoresPorNombre[$clave])) {
+                continue;
+            }
+            if (!isset($productosPorProveedor[$clave])) {
+                $productosPorProveedor[$clave] = [
+                    'id' => null,
+                    'nombre' => $nombreProveedor,
+                    'contacto' => '',
+                    'email' => '',
+                    'telefono' => '',
+                    'productos' => []
+                ];
+            }
+            $productosPorProveedor[$clave]['productos'][] = $producto['name'];
+        }
+        $proveedores = array_merge($proveedores, array_values($productosPorProveedor));
+
+        adminResponse(compact('productos', 'proveedores', 'clientes', 'usuarios', 'interacciones', 'ventas', 'movimientos', 'pedidos', 'demandaPorProducto'));
+    }
+
+    if ($method === 'POST' && $action === 'pedido') {
+        $productoId = (int) ($input['producto_id'] ?? 0);
+        $proveedor = readStringField($input, ['proveedor']);
+        $cantidad = filter_var($input['cantidad'] ?? null, FILTER_VALIDATE_INT);
+        $tipo = strtolower(readStringField($input, ['tipo'], 'reposicion'));
+        $fecha = readStringField($input, ['fecha']);
+        $notas = readStringField($input, ['notas']);
+
+        if ($productoId <= 0 || $cantidad === false || $cantidad === null || $cantidad <= 0
+            || !in_array($tipo, ['reposicion', 'venta'], true)
+            || mb_strlen($proveedor, 'UTF-8') > 150 || mb_strlen($notas, 'UTF-8') > 5000
+            || ($fecha !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha))) {
+            adminResponse(['error' => 'Completa un producto, cantidad válida, tipo y fecha válidos.'], 400);
+        }
+
+        $productoExiste = $pdo->prepare('SELECT id FROM productos WHERE id = ?');
+        $productoExiste->execute([$productoId]);
+        if (!$productoExiste->fetch()) {
+            adminResponse(['error' => 'El producto seleccionado no existe.'], 404);
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $insertar = $pdo->prepare(
+                "INSERT INTO pedidos_reposicion
+                    (folio, producto_id, proveedor, cantidad, tipo, estado, fecha_pedido, notas, usuario_id)
+                 VALUES (?, ?, ?, ?, ?, 'pendiente', ?, ?, ?)"
+            );
+            $insertar->execute([
+                'TMP-' . bin2hex(random_bytes(12)),
+                $productoId,
+                $proveedor,
+                $cantidad,
+                $tipo,
+                $fecha !== '' ? $fecha : null,
+                $notas,
+                (int) ($_SESSION['user_id'] ?? 0) ?: null
+            ]);
+            $pedidoId = (int) $pdo->lastInsertId();
+            $folio = 'PC-' . str_pad((string) $pedidoId, 3, '0', STR_PAD_LEFT);
+            $actualizarFolio = $pdo->prepare('UPDATE pedidos_reposicion SET folio = ? WHERE id = ?');
+            $actualizarFolio->execute([$folio, $pedidoId]);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+
+        adminResponse(['success' => true, 'id' => $pedidoId, 'folio' => $folio], 201);
+    }
+
+    if (($method === 'PATCH' || $method === 'PUT') && $action === 'pedido') {
+        $pedidoId = (int) ($input['id'] ?? 0);
+        $nuevoEstado = strtolower(readStringField($input, ['estado']));
+        if ($pedidoId <= 0 || !in_array($nuevoEstado, ['en_proceso', 'surtido', 'cancelado'], true)) {
+            adminResponse(['error' => 'Pedido o estado no válido.'], 400);
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare(
+                'SELECT id, folio, producto_id, proveedor, cantidad, tipo, estado
+                 FROM pedidos_reposicion WHERE id = ? FOR UPDATE'
+            );
+            $stmt->execute([$pedidoId]);
+            $pedido = $stmt->fetch();
+            if (!$pedido) {
+                $pdo->rollBack();
+                adminResponse(['error' => 'Pedido no encontrado.'], 404);
+            }
+            if ($pedido['estado'] === 'surtido' || $pedido['estado'] === 'cancelado') {
+                $pdo->rollBack();
+                adminResponse(['error' => 'El pedido ya está cerrado y no se puede cambiar.'], 409);
+            }
+            if ($nuevoEstado === 'en_proceso' && $pedido['estado'] !== 'pendiente') {
+                $pdo->rollBack();
+                adminResponse(['error' => 'Solo se pueden procesar pedidos pendientes.'], 409);
+            }
+
+            if ($nuevoEstado === 'surtido') {
+                $productoStmt = $pdo->prepare(
+                    'SELECT id, stock_actual, stock_maximo FROM productos WHERE id = ? FOR UPDATE'
+                );
+                $productoStmt->execute([$pedido['producto_id']]);
+                $producto = $productoStmt->fetch();
+                if (!$producto) {
+                    $pdo->rollBack();
+                    adminResponse(['error' => 'El producto del pedido ya no existe.'], 404);
+                }
+
+                $esReposicion = $pedido['tipo'] === 'reposicion';
+                $nuevoStock = (int) $producto['stock_actual']
+                    + ($esReposicion ? (int) $pedido['cantidad'] : -(int) $pedido['cantidad']);
+                if ($nuevoStock < 0) {
+                    $pdo->rollBack();
+                    adminResponse(['error' => 'El pedido de venta supera el stock disponible.'], 400);
+                }
+                if ($esReposicion && $nuevoStock > (int) $producto['stock_maximo']) {
+                    $pdo->rollBack();
+                    adminResponse([
+                        'error' => 'El pedido excede el inventario máximo. Stock máximo: '
+                            . (int) $producto['stock_maximo'] . '.'
+                    ], 400);
+                }
+
+                $actualizarStock = $pdo->prepare('UPDATE productos SET stock_actual = ? WHERE id = ?');
+                $actualizarStock->execute([$nuevoStock, $producto['id']]);
+                $insertarMovimiento = $pdo->prepare(
+                    'INSERT INTO movimientos_inventario (producto_id, usuario_id, tipo, cantidad, motivo)
+                     VALUES (?, ?, ?, ?, ?)'
+                );
+                $insertarMovimiento->execute([
+                    $producto['id'],
+                    (int) ($_SESSION['user_id'] ?? 0) ?: null,
+                    $esReposicion ? 'entrada' : 'salida',
+                    $pedido['cantidad'],
+                    'Pedido ' . $pedido['folio']
+                ]);
+            }
+
+            $actualizarPedido = $pdo->prepare('UPDATE pedidos_reposicion SET estado = ? WHERE id = ?');
+            $actualizarPedido->execute([$nuevoEstado, $pedidoId]);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+
+        adminResponse(['success' => true, 'id' => $pedidoId, 'estado' => $nuevoEstado]);
+    }
+
+    if ($method === 'POST' && $action === 'movimiento') {
+        $productoId = (int) ($input['producto_id'] ?? 0);
+        $tipo = strtolower(readStringField($input, ['tipo']));
+        $cantidad = filter_var($input['cantidad'] ?? null, FILTER_VALIDATE_INT);
+        $motivo = readStringField($input, ['motivo']);
+
+        if ($productoId <= 0 || !in_array($tipo, ['entrada', 'salida'], true)
+            || $cantidad === false || $cantidad === null || $cantidad <= 0
+            || $motivo === '' || mb_strlen($motivo, 'UTF-8') > 255) {
+            adminResponse(['error' => 'Producto, tipo, cantidad positiva y motivo son obligatorios.'], 400);
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare('SELECT id, stock_actual, stock_maximo FROM productos WHERE id = ? FOR UPDATE');
+            $stmt->execute([$productoId]);
+            $producto = $stmt->fetch();
+            if (!$producto) {
+                $pdo->rollBack();
+                adminResponse(['error' => 'Producto no encontrado.'], 404);
+            }
+
+            $stockActualizado = (int) $producto['stock_actual']
+                + ($tipo === 'entrada' ? $cantidad : -$cantidad);
+            if ($stockActualizado < 0) {
+                $pdo->rollBack();
+                adminResponse(['error' => 'La salida supera el stock disponible.'], 400);
+            }
+            if ($tipo === 'entrada' && $stockActualizado > (int) $producto['stock_maximo']) {
+                $pdo->rollBack();
+                adminResponse([
+                    'error' => 'La entrada excede el inventario máximo. Stock máximo: '
+                        . (int) $producto['stock_maximo'] . '.'
+                ], 400);
+            }
+
+            $actualizar = $pdo->prepare('UPDATE productos SET stock_actual = ? WHERE id = ?');
+            $actualizar->execute([$stockActualizado, $productoId]);
+
+            $insertar = $pdo->prepare(
+                'INSERT INTO movimientos_inventario (producto_id, usuario_id, tipo, cantidad, motivo)
+                 VALUES (?, ?, ?, ?, ?)'
+            );
+            $insertar->execute([
+                $productoId,
+                (int) ($_SESSION['user_id'] ?? 0) ?: null,
+                $tipo,
+                $cantidad,
+                $motivo
+            ]);
+            $movimientoId = $pdo->lastInsertId();
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+
+        adminResponse([
+            'success' => true,
+            'id' => $movimientoId,
+            'stock_actual' => $stockActualizado
+        ], 201);
+    }
+
+    if ($method === 'POST' && $action === 'proveedor') {
+        $nombre = readStringField($input, ['nombre']);
+        $nombreAnterior = readStringField($input, ['nombreAnterior']);
+        $contacto = readStringField($input, ['contacto']);
+        $email = readStringField($input, ['email']);
+        $telefono = readStringField($input, ['telefono']);
+        $productos = normalizeProviderProducts($input['productos'] ?? []);
+
+        if ($nombre === '' || mb_strlen($nombre, 'UTF-8') > 150
+            || mb_strlen($nombreAnterior, 'UTF-8') > 150
+            || mb_strlen($contacto, 'UTF-8') > 150
+            || mb_strlen($email, 'UTF-8') > 254
+            || mb_strlen($telefono, 'UTF-8') > 30
+            || ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL))
+            || ($telefono !== '' && !preg_match('/^[0-9]+$/', $telefono))) {
+            adminResponse(['error' => 'Revisa el nombre, correo y teléfono del proveedor.'], 400);
+        }
+
+        $duplicate = $pdo->prepare('SELECT id FROM proveedores WHERE nombre = ?');
+        $duplicate->execute([$nombre]);
+        if ($duplicate->fetch()) {
+            adminResponse(['error' => 'Ya existe un proveedor con ese nombre.'], 409);
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare(
+                'INSERT INTO proveedores (nombre, contacto, email, telefono, productos) VALUES (?, ?, ?, ?, ?)'
+            );
+            $stmt->execute([$nombre, $contacto, $email, $telefono, json_encode($productos, JSON_UNESCAPED_UNICODE)]);
+            if ($nombreAnterior !== '' && $nombreAnterior !== $nombre) {
+                $actualizarProductos = $pdo->prepare('UPDATE productos SET proveedor = ? WHERE proveedor = ?');
+                $actualizarProductos->execute([$nombre, $nombreAnterior]);
+            }
+            syncProviderProducts($pdo, $nombre, $productos);
+            $id = $pdo->lastInsertId();
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+        adminResponse(['success' => true, 'id' => $id], 201);
+    }
+
+    if (($method === 'PUT' || $method === 'PATCH') && $action === 'proveedor') {
+        $id = (int) ($input['id'] ?? 0);
+        if ($id <= 0) {
+            adminResponse(['error' => 'ID del proveedor inválido.'], 400);
+        }
+
+        $stmt = $pdo->prepare('SELECT * FROM proveedores WHERE id = ?');
+        $stmt->execute([$id]);
+        $actual = $stmt->fetch();
+        if (!$actual) {
+            adminResponse(['error' => 'Proveedor no encontrado.'], 404);
+        }
+
+        $nombre = array_key_exists('nombre', $input) ? trim((string) $input['nombre']) : $actual['nombre'];
+        $contacto = array_key_exists('contacto', $input) ? trim((string) $input['contacto']) : $actual['contacto'];
+        $email = array_key_exists('email', $input) ? trim((string) $input['email']) : $actual['email'];
+        $telefono = array_key_exists('telefono', $input) ? trim((string) $input['telefono']) : $actual['telefono'];
+        $productos = array_key_exists('productos', $input)
+            ? normalizeProviderProducts($input['productos'])
+            : normalizeProviderProducts(json_decode($actual['productos'] ?? '[]', true) ?? []);
+
+        if ($nombre === '' || mb_strlen($nombre, 'UTF-8') > 150
+            || mb_strlen($contacto, 'UTF-8') > 150
+            || mb_strlen($email, 'UTF-8') > 254
+            || mb_strlen($telefono, 'UTF-8') > 30
+            || ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL))
+            || ($telefono !== '' && !preg_match('/^[0-9]+$/', $telefono))) {
+            adminResponse(['error' => 'Revisa el nombre, correo y teléfono del proveedor.'], 400);
+        }
+
+        $duplicate = $pdo->prepare('SELECT id FROM proveedores WHERE nombre = ? AND id <> ?');
+        $duplicate->execute([$nombre, $id]);
+        if ($duplicate->fetch()) {
+            adminResponse(['error' => 'Ya existe un proveedor con ese nombre.'], 409);
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare(
+                'UPDATE proveedores SET nombre = ?, contacto = ?, email = ?, telefono = ?, productos = ? WHERE id = ?'
+            );
+            $stmt->execute([
+                $nombre,
+                $contacto,
+                $email,
+                $telefono,
+                json_encode($productos, JSON_UNESCAPED_UNICODE),
+                $id
+            ]);
+
+            if ($nombre !== $actual['nombre']) {
+                $actualizarProductos = $pdo->prepare('UPDATE productos SET proveedor = ? WHERE proveedor = ?');
+                $actualizarProductos->execute([$nombre, $actual['nombre']]);
+            }
+            syncProviderProducts($pdo, $nombre, $productos);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        adminResponse(['success' => true, 'id' => $id]);
     }
 
     if ($method === 'POST' && $action === 'cliente') {
@@ -316,6 +744,8 @@ try {
     }
 
     adminResponse(['error' => 'Operación no permitida.'], 405);
+} catch (InvalidArgumentException $e) {
+    adminResponse(['error' => $e->getMessage()], 400);
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Error de base de datos. Verifica el esquema importado.'], JSON_UNESCAPED_UNICODE);

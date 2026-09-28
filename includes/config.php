@@ -40,6 +40,66 @@ function ensureProductSchema(PDO $pdo): void {
     if (!$column) {
         $pdo->exec("ALTER TABLE productos ADD COLUMN proveedor VARCHAR(150) NOT NULL DEFAULT '' AFTER category");
     }
+    $locationColumn = $pdo->query("SHOW COLUMNS FROM productos LIKE 'ubicacion'")->fetch();
+    if (!$locationColumn) {
+        $pdo->exec("ALTER TABLE productos ADD COLUMN ubicacion VARCHAR(150) NOT NULL DEFAULT '' AFTER proveedor");
+    }
+    $maximumStockColumn = $pdo->query("SHOW COLUMNS FROM productos LIKE 'stock_maximo'")->fetch();
+    if (!$maximumStockColumn) {
+        $pdo->exec("ALTER TABLE productos ADD COLUMN stock_maximo INT UNSIGNED NOT NULL DEFAULT 0 AFTER stock_minimo");
+    }
+}
+
+function ensureProviderSchema(PDO $pdo): void {
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS proveedores (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            nombre VARCHAR(150) NOT NULL,
+            contacto VARCHAR(150) NOT NULL DEFAULT '',
+            email VARCHAR(254) NOT NULL DEFAULT '',
+            telefono VARCHAR(30) NOT NULL DEFAULT '',
+            productos TEXT NOT NULL,
+            UNIQUE KEY uq_proveedores_nombre (nombre)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+}
+
+function ensureInventoryMovementSchema(PDO $pdo): void {
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS movimientos_inventario (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            producto_id INT NOT NULL,
+            usuario_id INT NULL,
+            tipo VARCHAR(10) NOT NULL,
+            cantidad INT UNSIGNED NOT NULL,
+            motivo VARCHAR(255) NOT NULL,
+            fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_movimientos_fecha (fecha),
+            INDEX idx_movimientos_producto (producto_id),
+            INDEX idx_movimientos_tipo (tipo)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+}
+
+function ensurePurchaseOrderSchema(PDO $pdo): void {
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS pedidos_reposicion (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            folio VARCHAR(30) NOT NULL UNIQUE,
+            producto_id INT NOT NULL,
+            proveedor VARCHAR(150) NOT NULL DEFAULT '',
+            cantidad INT UNSIGNED NOT NULL,
+            tipo VARCHAR(20) NOT NULL DEFAULT 'reposicion',
+            estado VARCHAR(20) NOT NULL DEFAULT 'pendiente',
+            fecha_pedido DATE NULL,
+            notas TEXT NULL,
+            usuario_id INT NULL,
+            fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_pedidos_estado (estado),
+            INDEX idx_pedidos_tipo (tipo),
+            INDEX idx_pedidos_producto (producto_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
 }
 
 // Función para verificar si el usuario está logueado

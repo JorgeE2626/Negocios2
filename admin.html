@@ -86,6 +86,38 @@
         .tabla-datos th { background: #f8f9ff; color: #0d1b3d; font-weight: 600; }
         .tabla-datos tr:hover { background: #f5f5f5; }
         .tabla-productos { min-width: 1180px; }
+        .tabla-proveedores { min-width: 1000px; }
+        .tabla-proveedores th { background: #eef0f8; }
+        .tabla-proveedores td { vertical-align: middle; }
+        .tabla-proveedores .product-chip {
+            display: block; color: #2b3248; font-size: 20px; line-height: 1.35;
+            white-space: normal; overflow-wrap: anywhere;
+        }
+        .estado-inventario { display: inline-block; padding: 5px 10px; border-radius: 999px; font-weight: 600; }
+        .estado-inventario-bajo { color: #842029; background: #f8d7da; }
+        .estado-inventario-regular { color: #664d03; background: #fff3cd; }
+        .estado-inventario-alto { color: #0f5132; background: #d1e7dd; }
+        .estado-inventario-bueno { color: #0f5132; background: #d1e7dd; }
+        .movimiento-entrada { color: #0f5132; font-weight: 600; }
+        .movimiento-salida { color: #b02a37; font-weight: 600; }
+        .logistica-layout { display: grid; grid-template-columns: minmax(280px, 0.8fr) minmax(400px, 1.5fr); gap: 24px; }
+        .logistica-configuracion { background: #f8f9fa; border-radius: 10px; padding: 24px; }
+        .logistica-configuracion h3, .logistica-tabla h3 { margin-bottom: 18px; color: #0d1b3d; }
+        .logistica-configuracion select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+        .logistica-opciones { display: flex; gap: 24px; margin: 12px 0 24px; }
+        .logistica-opcion { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+        .logistica-opcion-titulo { display: flex; align-items: center; gap: 8px; }
+        .logistica-opcion small { color: #555; padding-left: 24px; }
+        .logistica-opcion input { width: auto; }
+        .logistica-configuracion .btn { width: 100%; justify-content: center; }
+        .logistica-badge { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+        .logistica-badge-push { color: #084298; background: #cfe2ff; }
+        .logistica-badge-pull { color: #664d03; background: #fff3cd; }
+        .pedido-estado { display: inline-block; padding: 5px 10px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
+        .pedido-estado-pendiente { color: #664d03; background: #fff3cd; }
+        .pedido-estado-en_proceso { color: #084298; background: #cfe2ff; }
+        .pedido-estado-surtido { color: #0f5132; background: #d1e7dd; }
+        .pedido-estado-cancelado { color: #842029; background: #f8d7da; }
 
         .acciones { display: flex; gap: 8px; min-width: 220px; white-space: nowrap; }
         .btn-accion {
@@ -104,6 +136,7 @@
             .admin-title { font-size: 20px; }
             .admin-header .btn { justify-content: center; }
             .tabla-productos { min-width: 1080px; }
+            .logistica-layout { grid-template-columns: 1fr; }
         }
 
         .modal {
@@ -122,6 +155,8 @@
             width: 100%; padding: 10px; border: 1px solid #ccc;
             border-radius: 6px; font-family: 'Poppins', sans-serif;
         }
+        .campo-publicar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .campo-publicar input { width: auto; }
         .modal-botones { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
         .perfil-card { background: #f8f9ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
@@ -193,7 +228,28 @@
                 </div>
                 <div class="submenu" id="scm-submenu">
                     <div class="submenu-link" data-vista="scm-productos">
-                        <i class="fas fa-boxes-stacked"></i> Lista de productos
+                        <i class="fas fa-boxes-stacked"></i> Productos
+                    </div>
+                    <div class="submenu-link" data-vista="proveedores">
+                        <i class="fas fa-truck"></i> Proveedores
+                    </div>
+                    <div class="submenu-link" data-vista="inventario">
+                        <i class="fas fa-warehouse"></i> Inventario
+                    </div>
+                    <div class="submenu-link" data-vista="movimientos">
+                        <i class="fas fa-arrows-alt-h"></i> Movimientos
+                    </div>
+                    <div class="submenu-link" data-vista="logistica">
+                        <i class="fas fa-shipping-fast"></i> Logística
+                    </div>
+                    <div class="submenu-link" data-vista="pedidos">
+                        <i class="fas fa-clipboard-list"></i> Pedidos
+                    </div>
+                    <div class="submenu-link" data-vista="scm-productos">
+                        <i class="fas fa-chart-line"></i> Nivel Madurez
+                    </div>
+                    <div class="submenu-link" data-vista="scm-productos">
+                        <i class="fas fa-chart-bar"></i> Reportes SCM
                     </div>
                 </div>
             </nav>
@@ -254,6 +310,210 @@
                         </thead>
                         <tbody id="tabla-productos-body"></tbody>
                     </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: INVENTARIO -->
+            <div id="inventario" class="vista">
+                <div class="admin-container">
+                    <div class="admin-header">
+                        <h2 class="admin-title">Inventario</h2>
+                    </div>
+                    <div class="tabla-responsive">
+                        <table class="tabla-datos">
+                            <thead>
+                                <tr>
+                                    <th>Nombre del producto</th>
+                                    <th>Stock actual</th>
+                                    <th>Stock mínimo</th>
+                                    <th>Stock máximo</th>
+                                    <th>Ubicación</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-inventario-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: MOVIMIENTOS DE INVENTARIO -->
+            <div id="movimientos" class="vista">
+                <div class="admin-container">
+                    <div class="admin-header">
+                        <h2 class="admin-title">Movimientos de inventario</h2>
+                        <button class="btn btn-primary" id="btn-nuevo-movimiento">
+                            <i class="fas fa-plus"></i> Nuevo movimiento
+                        </button>
+                    </div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+                        <div class="campo" style="margin:0;min-width:180px;">
+                            <label for="filtro-movimiento-tipo">Tipo</label>
+                            <select id="filtro-movimiento-tipo">
+                                <option value="">Todos</option>
+                                <option value="entrada">Entrada</option>
+                                <option value="salida">Salida</option>
+                            </select>
+                        </div>
+                        <div class="campo" style="margin:0;min-width:220px;">
+                            <label for="filtro-movimiento-producto">Producto</label>
+                            <select id="filtro-movimiento-producto">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="tabla-responsive">
+                        <table class="tabla-datos">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Producto</th>
+                                    <th>Tipo</th>
+                                    <th>Cantidad</th>
+                                    <th>Motivo</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-movimientos-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: LOGISTICA -->
+            <div id="logistica" class="vista">
+                <div class="admin-container">
+                    <div class="admin-header">
+                        <h2 class="admin-title">Logística - Estrategia de reposición</h2>
+                    </div>
+                    <div class="logistica-layout">
+                        <section class="logistica-configuracion">
+                            <h3>Configurar estrategia</h3>
+                            <div class="campo">
+                                <label for="logistica-producto">Producto</label>
+                                <select id="logistica-producto" required></select>
+                            </div>
+                            <div class="campo">
+                                <label>Estrategia de reposición</label>
+                                <div class="logistica-opciones">
+                                    <label class="logistica-opcion">
+                                        <span class="logistica-opcion-titulo">
+                                            <input type="radio" name="logistica-estrategia" value="Push" checked>
+                                            PUSH
+                                        </span>
+                                        <small>Pedido automático</small>
+                                    </label>
+                                    <label class="logistica-opcion">
+                                        <span class="logistica-opcion-titulo">
+                                            <input type="radio" name="logistica-estrategia" value="Pull">
+                                            PULL
+                                        </span>
+                                        <small>Pedido manual</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" id="btn-guardar-logistica" type="button">
+                                Guardar configuración
+                            </button>
+                        </section>
+                        <section class="logistica-tabla">
+                            <h3>Productos por estrategia</h3>
+                            <div class="tabla-responsive">
+                                <table class="tabla-datos">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Stock actual</th>
+                                            <th>Stock mínimo</th>
+                                            <th>Stock máximo</th>
+                                            <th>Estrategia</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-logistica-body"></tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: PEDIDOS -->
+            <div id="pedidos" class="vista">
+                <div class="admin-container">
+                    <div class="admin-header">
+                        <div>
+                            <h2 class="admin-title">Pedidos</h2>
+                            <p style="color:#667085;margin-top:5px;">Gestiona pedidos de reposición y suministro.</p>
+                        </div>
+                        <button class="btn btn-primary" id="btn-nuevo-pedido">
+                            <i class="fas fa-plus"></i> Generar pedido
+                        </button>
+                    </div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+                        <div class="campo" style="margin:0;min-width:180px;">
+                            <label for="filtro-pedido-estado">Estado</label>
+                            <select id="filtro-pedido-estado">
+                                <option value="">Todos</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_proceso">En proceso</option>
+                                <option value="surtido">Recibido / completado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                        <div class="campo" style="margin:0;min-width:180px;">
+                            <label for="filtro-pedido-tipo">Tipo</label>
+                            <select id="filtro-pedido-tipo">
+                                <option value="">Todos</option>
+                                <option value="reposicion">Reposición</option>
+                                <option value="venta">Venta</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="tabla-responsive">
+                        <table class="tabla-datos">
+                            <thead>
+                                <tr>
+                                    <th>Folio</th>
+                                    <th>Fecha</th>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Tipo</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-pedidos-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: Proveedores -->
+            <div id="proveedores" class="vista">
+                <div class="admin-container">
+                    <div class="admin-header" style="justify-content: space-between; align-items: center;">
+                        <h2 class="admin-title" style="font-size: 40px; font-weight: 700; color: #1d2438;">Proveedores</h2>
+                        <button id="btn-agregar-proveedor" class="btn btn-primary" style="background: #1e2c52; border-radius: 10px; padding: 14px 24px; font-size: 18px; font-weight: 600;">
+                            <i class="fas fa-plus"></i> Nuevo proveedor
+                        </button>
+                    </div>
+
+                    <div class="tabla-responsive" style="border-top: 1px solid #dfe5f1; margin-top: 20px;">
+                        <table class="tabla-datos tabla-proveedores" style="margin-top: 0; border-collapse: separate; border-spacing: 0;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 22%; font-size: 20px; font-weight: 600; padding: 16px 18px; color: #1d2438;">Nombre</th>
+                                    <th style="width: 18%; font-size: 20px; font-weight: 600; padding: 16px 18px; color: #1d2438;">Contacto</th>
+                                    <th style="width: 20%; font-size: 20px; font-weight: 600; padding: 16px 18px; color: #1d2438;">Email</th>
+                                    <th style="width: 15%; font-size: 20px; font-weight: 600; padding: 16px 18px; color: #1d2438;">Teléfono</th>
+                                    <th style="width: 17%; font-size: 20px; font-weight: 600; padding: 16px 18px; color: #1d2438;">Productos</th>
+                                    <th style="width: 8%; font-size: 20px; font-weight: 600; padding: 16px 18px; color: #1d2438;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-proveedores-body"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -416,12 +676,20 @@
                     <input type="text" id="producto-proveedor" required>
                 </div>
                 <div class="campo">
+                    <label>Ubicación</label>
+                    <input type="text" id="producto-ubicacion" maxlength="150" placeholder="Ej. Almacén A, estante 2">
+                </div>
+                <div class="campo">
                     <label>Stock actual</label>
                     <input type="number" id="producto-stock-actual" min="0" step="1" required>
                 </div>
                 <div class="campo">
                     <label>Stock mínimo</label>
                     <input type="number" id="producto-stock-minimo" min="0" step="1" required>
+                </div>
+                <div class="campo">
+                    <label>Stock máximo</label>
+                    <input type="number" id="producto-stock-maximo" min="0" step="1" required>
                 </div>
                 <div class="campo">
                     <label>Estrategia logística</label>
@@ -434,9 +702,156 @@
                     <label>Precio ($)</label>
                     <input type="number" id="producto-precio" step="0.01" required>
                 </div>
+                <label class="campo-publicar">
+                    <input type="checkbox" id="producto-activo" checked>
+                    Publicar producto
+                </label>
                 <div class="modal-botones">
                     <button type="button" class="btn btn-secondary btn-cerrar-modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL EDICION DE INVENTARIO -->
+    <div id="modal-inventario" class="modal">
+        <div class="modal-contenido">
+            <h3>Editar inventario</h3>
+            <form id="form-inventario">
+                <input type="hidden" id="inventario-producto-id">
+                <div class="campo">
+                    <label>Producto</label>
+                    <input type="text" id="inventario-producto-nombre" readonly>
+                </div>
+                <div class="campo">
+                    <label>Stock actual</label>
+                    <input type="number" id="inventario-stock-actual" min="0" step="1" required>
+                </div>
+                <div class="campo">
+                    <label>Stock mínimo</label>
+                    <input type="number" id="inventario-stock-minimo" min="0" step="1" required>
+                </div>
+                <div class="campo">
+                    <label>Stock máximo</label>
+                    <input type="number" id="inventario-stock-maximo" min="0" step="1" required>
+                </div>
+                <div class="campo">
+                    <label>Ubicación</label>
+                    <input type="text" id="inventario-ubicacion" maxlength="150">
+                </div>
+                <div class="modal-botones">
+                    <button type="button" class="btn btn-secondary btn-cerrar-modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO MOVIMIENTO -->
+    <div id="modal-movimiento" class="modal">
+        <div class="modal-contenido">
+            <h3>Registrar movimiento</h3>
+            <form id="form-movimiento">
+                <div class="campo">
+                    <label for="movimiento-producto">Producto</label>
+                    <select id="movimiento-producto" required></select>
+                </div>
+                <div class="campo">
+                    <label for="movimiento-tipo">Tipo</label>
+                    <select id="movimiento-tipo" required>
+                        <option value="entrada">Entrada</option>
+                        <option value="salida">Salida</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="movimiento-cantidad">Cantidad</label>
+                    <input type="number" id="movimiento-cantidad" min="1" step="1" required>
+                </div>
+                <div class="campo">
+                    <label for="movimiento-motivo">Motivo</label>
+                    <input type="text" id="movimiento-motivo" maxlength="255" required>
+                </div>
+                <div class="modal-botones">
+                    <button type="button" class="btn btn-secondary btn-cerrar-modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO PEDIDO -->
+    <div id="modal-pedido" class="modal">
+        <div class="modal-contenido">
+            <h3>Nuevo pedido</h3>
+            <form id="form-pedido">
+                <div class="campo">
+                    <label for="pedido-producto">Producto</label>
+                    <select id="pedido-producto" required></select>
+                </div>
+                <div class="campo">
+                    <label for="pedido-cantidad">Cantidad</label>
+                    <input type="number" id="pedido-cantidad" min="1" step="1" value="1" required>
+                </div>
+                <div class="campo">
+                    <label for="pedido-tipo">Tipo</label>
+                    <select id="pedido-tipo" required>
+                        <option value="reposicion">Reposición</option>
+                        <option value="venta">Venta</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="pedido-proveedor">Proveedor</label>
+                    <select id="pedido-proveedor">
+                        <option value="">Selecciona un proveedor</option>
+                    </select>
+                </div>
+                <div class="campo">
+                    <label for="pedido-fecha">Fecha</label>
+                    <input type="date" id="pedido-fecha" required>
+                </div>
+                <div class="campo">
+                    <label for="pedido-notas">Notas</label>
+                    <textarea id="pedido-notas" rows="3" maxlength="5000" placeholder="Notas adicionales..."></textarea>
+                </div>
+                <div class="modal-botones">
+                    <button type="button" class="btn btn-secondary btn-cerrar-modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar pedido</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PROVEEDOR -->
+    <div id="modal-proveedor" class="modal">
+        <div class="modal-contenido">
+            <h3 id="modal-proveedor-titulo">Editar Proveedor</h3>
+            <form id="form-proveedor">
+                <input type="hidden" id="proveedor-id" value="">
+                <input type="hidden" id="proveedor-nombre-anterior" value="">
+                <div class="campo">
+                    <label>Nombre del proveedor</label>
+                    <input type="text" id="proveedor-nombre" required>
+                </div>
+                <div class="campo">
+                    <label>Contacto</label>
+                    <input type="text" id="proveedor-contacto">
+                </div>
+                <div class="campo">
+                    <label>Email</label>
+                    <input type="email" id="proveedor-email">
+                </div>
+                <div class="campo">
+                    <label>Teléfono</label>
+                    <input type="text" id="proveedor-telefono" class="solo-numeros" maxlength="10" placeholder="Ej. 5550192">
+                </div>
+                <div class="campo">
+                    <label>Productos que provee</label>
+                    <textarea id="proveedor-productos" rows="4" placeholder="Ej. Laptop Pro 15&#10;Monitor 27&quot;&#10;Teclado mecánico"></textarea>
+                </div>
+                <div class="modal-botones">
+                    <button type="button" class="btn btn-secondary btn-cerrar-modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
                 </div>
             </form>
         </div>
@@ -561,6 +976,10 @@
         let cacheClientes = [];
         let cacheInteracciones = [];
         let cacheProductos = [];
+        let cacheProveedores = [];
+        let cacheMovimientos = [];
+        let cachePedidos = [];
+        let cacheDemandaPorProducto = {};
         let cacheVentas = [];
         let cacheUsuarios = [];
         let miGrafica = null;
@@ -586,6 +1005,17 @@
         const crmSubmenu = document.getElementById('crm-submenu');
         const scmToggle = document.getElementById('scm-menu-toggle');
         const scmSubmenu = document.getElementById('scm-submenu');
+
+        document.getElementById('btn-agregar-producto').addEventListener('click', () => {
+            document.getElementById('modal-titulo').textContent = 'Agregar Producto';
+            document.getElementById('form-producto').reset();
+            document.getElementById('producto-id').value = '';
+            document.getElementById('modal-producto').classList.add('activo');
+        });
+
+        document.getElementById('btn-agregar-proveedor').addEventListener('click', () => {
+            abrirModalProveedor();
+        });
 
         crmToggle.addEventListener('click', () => {
             crmSubmenu.classList.toggle('activo');
@@ -616,6 +1046,11 @@
             if (vistaId === 'resumen') cargarDashboard();
             if (vistaId === 'crm-resumen') cargarCRMResumen();
             if (vistaId === 'scm-productos') cargarProductos();
+            if (vistaId === 'inventario') cargarInventario();
+            if (vistaId === 'movimientos') cargarMovimientos();
+            if (vistaId === 'logistica') cargarLogistica();
+            if (vistaId === 'pedidos') cargarPedidos();
+            if (vistaId === 'proveedores') cargarProveedores();
             if (vistaId === 'ventas') cargarVentas();
             if (vistaId === 'clientes') cargarClientes();
             if (vistaId === 'interacciones') cargarInteracciones();
@@ -663,8 +1098,14 @@
                 const datos = await res.json();
                 if (datos.error) throw new Error(datos.error);
                 cacheProductos = Array.isArray(datos.productos) ? datos.productos : [];
+                cacheDemandaPorProducto = datos.demandaPorProducto && typeof datos.demandaPorProducto === 'object'
+                    ? datos.demandaPorProducto
+                    : {};
                 cacheVentas = Array.isArray(datos.ventas) ? datos.ventas : [];
                 cacheClientes = Array.isArray(datos.clientes) ? datos.clientes : [];
+                cacheProveedores = Array.isArray(datos.proveedores) ? datos.proveedores : [];
+                cacheMovimientos = Array.isArray(datos.movimientos) ? datos.movimientos : [];
+                cachePedidos = Array.isArray(datos.pedidos) ? datos.pedidos : [];
                 cacheInteracciones = Array.isArray(datos.interacciones) ? datos.interacciones : [];
                 cacheUsuarios = Array.isArray(datos.usuarios) ? datos.usuarios : [];
                 return datos;
@@ -689,6 +1130,11 @@
                 if (vistaActual === 'resumen') await cargarDashboard(false);
                 if (vistaActual === 'crm-resumen') await cargarCRMResumen(false);
                 if (vistaActual === 'scm-productos') await cargarProductos(false);
+                if (vistaActual === 'inventario') await cargarInventario(false);
+                if (vistaActual === 'movimientos') await cargarMovimientos(false);
+                if (vistaActual === 'logistica') await cargarLogistica(false);
+                if (vistaActual === 'pedidos') await cargarPedidos(false);
+                if (vistaActual === 'proveedores') await cargarProveedores(false);
                 if (vistaActual === 'ventas') await cargarVentas(false);
                 if (vistaActual === 'clientes') await cargarClientes(false);
                 if (vistaActual === 'interacciones') await cargarInteracciones(false);
@@ -728,13 +1174,7 @@
                         <td>${p.proveedor || ''}</td>
                         <td>${p.stock_actual ?? 0}</td>
                         <td>${p.stock_minimo ?? 0}</td>
-                        <td>
-                            <button type="button" class="btn-accion btn-estrategia-${estrategia.toLowerCase()}"
-                                onclick="cambiarEstrategiaProducto(${p.id})"
-                                aria-label="Cambiar estrategia de ${estrategia} a ${estrategia === 'Push' ? 'Pull' : 'Push'}">
-                                ${estrategia}
-                            </button>
-                        </td>
+                        <td><span class="logistica-badge logistica-badge-${estrategia.toLowerCase()}">${estrategia}</span></td>
                         <td>$${precioNum.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
                         <td class="acciones">
                             <button class="btn-accion btn-editar" onclick="editarProducto(${p.id})"><i class="fas fa-edit"></i> Editar</button>
@@ -750,32 +1190,613 @@
             }
         }
 
-        async function cambiarEstrategiaProducto(id) {
-            const producto = cacheProductos.find(item => parseInt(item.id, 10) === parseInt(id, 10));
+        async function cargarInventario(recargar = true) {
+            try {
+                if (recargar) await cargarDatosAdmin();
+                const tbody = document.getElementById('tabla-inventario-body');
+                tbody.innerHTML = '';
+
+                if (!cacheProductos.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay productos registrados en inventario.</td></tr>';
+                    return;
+                }
+
+                cacheProductos.forEach(producto => {
+                    const stockActual = Number(producto.stock_actual) || 0;
+                    const stockMinimo = Number(producto.stock_minimo) || 0;
+                    const stockMaximo = Number(producto.stock_maximo) || 0;
+                    const estado = stockMaximo > 0 && stockActual === stockMaximo
+                        ? 'Bueno'
+                        : stockActual <= stockMinimo
+                            ? 'Bajo'
+                            : stockActual <= stockMinimo * 2 ? 'Regular' : 'Alto';
+                    const tr = document.createElement('tr');
+                    [
+                        producto.name || producto.nombre || '',
+                        stockActual,
+                        stockMinimo,
+                        stockMaximo,
+                        producto.ubicacion || 'Sin ubicación'
+                    ].forEach(valor => {
+                        const td = document.createElement('td');
+                        td.textContent = String(valor);
+                        tr.appendChild(td);
+                    });
+
+                    const estadoCell = document.createElement('td');
+                    const badge = document.createElement('span');
+                    badge.className = `estado-inventario estado-inventario-${estado.toLowerCase()}`;
+                    badge.textContent = estado;
+                    estadoCell.appendChild(badge);
+                    tr.appendChild(estadoCell);
+
+                    const accionesCell = document.createElement('td');
+                    const editar = document.createElement('button');
+                    editar.className = 'btn-accion btn-editar';
+                    editar.type = 'button';
+                    editar.innerHTML = '<i class="fas fa-edit"></i> Editar';
+                    editar.addEventListener('click', () => editarInventario(producto.id));
+                    accionesCell.appendChild(editar);
+                    tr.appendChild(accionesCell);
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error al cargar inventario:', error);
+                document.getElementById('tabla-inventario-body').innerHTML =
+                    '<tr><td colspan="7" style="text-align:center;color:#dc3545;">No se pudo cargar el inventario.</td></tr>';
+            }
+        }
+
+        function actualizarFiltrosMovimientos() {
+            const filtroProducto = document.getElementById('filtro-movimiento-producto');
+            const valorActual = filtroProducto.value;
+            filtroProducto.replaceChildren(new Option('Todos', ''));
+
+            cacheProductos.forEach(producto => {
+                const nombre = producto.name || producto.nombre || '';
+                filtroProducto.add(new Option(nombre, String(producto.id)));
+            });
+            filtroProducto.value = valorActual;
+        }
+
+        async function cargarMovimientos(recargar = true) {
+            try {
+                if (recargar) await cargarDatosAdmin();
+                actualizarFiltrosMovimientos();
+                const tbody = document.getElementById('tabla-movimientos-body');
+                tbody.replaceChildren();
+
+                const tipoSeleccionado = document.getElementById('filtro-movimiento-tipo').value;
+                const productoSeleccionado = document.getElementById('filtro-movimiento-producto').value;
+                const movimientos = cacheMovimientos.filter(movimiento =>
+                    (!tipoSeleccionado || movimiento.tipo === tipoSeleccionado)
+                    && (!productoSeleccionado || String(movimiento.producto_id) === productoSeleccionado)
+                );
+
+                if (!movimientos.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay movimientos para mostrar.</td></tr>';
+                    return;
+                }
+
+                movimientos.forEach(movimiento => {
+                    const tr = document.createElement('tr');
+                    const celdas = [
+                        movimiento.fecha || '',
+                        movimiento.producto || 'Producto no disponible',
+                        movimiento.tipo === 'entrada' ? 'Entrada' : 'Salida',
+                        `${movimiento.tipo === 'entrada' ? '+' : '-'}${movimiento.cantidad}`,
+                        movimiento.motivo || '',
+                        movimiento.usuario || 'Sistema'
+                    ];
+                    celdas.forEach((valor, indice) => {
+                        const td = document.createElement('td');
+                        td.textContent = String(valor);
+                        if (indice === 2 || indice === 3) {
+                            td.className = movimiento.tipo === 'entrada' ? 'movimiento-entrada' : 'movimiento-salida';
+                        }
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error al cargar movimientos:', error);
+                document.getElementById('tabla-movimientos-body').innerHTML =
+                    '<tr><td colspan="6" style="text-align:center;color:#dc3545;">No se pudieron cargar los movimientos.</td></tr>';
+            }
+        }
+
+        async function cargarPedidos(recargar = true) {
+            try {
+                if (recargar) await cargarDatosAdmin();
+                const tbody = document.getElementById('tabla-pedidos-body');
+                tbody.replaceChildren();
+                const estadoFiltro = document.getElementById('filtro-pedido-estado').value;
+                const tipoFiltro = document.getElementById('filtro-pedido-tipo').value;
+                const pedidos = cachePedidos.filter(pedido =>
+                    (!estadoFiltro || pedido.estado === estadoFiltro)
+                    && (!tipoFiltro || pedido.tipo === tipoFiltro)
+                );
+
+                if (!pedidos.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No hay pedidos para mostrar.</td></tr>';
+                    return;
+                }
+
+                pedidos.forEach(pedido => {
+                    const tr = document.createElement('tr');
+                    [
+                        pedido.folio || '',
+                        pedido.fecha || '',
+                        pedido.producto || 'Producto no disponible',
+                        pedido.cantidad,
+                        pedido.tipo === 'venta' ? 'Venta' : 'Reposición'
+                    ].forEach(valor => {
+                        const td = document.createElement('td');
+                        td.textContent = String(valor ?? '');
+                        tr.appendChild(td);
+                    });
+
+                    const estadoCell = document.createElement('td');
+                    const estado = document.createElement('span');
+                    estado.className = `pedido-estado pedido-estado-${pedido.estado}`;
+                    estado.textContent = {
+                        pendiente: 'Pendiente',
+                        en_proceso: 'En proceso',
+                        surtido: 'Recibido / completado',
+                        cancelado: 'Cancelado'
+                    }[pedido.estado] || pedido.estado;
+                    estadoCell.appendChild(estado);
+                    tr.appendChild(estadoCell);
+
+                    const acciones = document.createElement('td');
+                    acciones.className = 'acciones';
+                    if (pedido.estado === 'pendiente') {
+                        acciones.appendChild(crearAccionPedido(pedido.id, 'en_proceso', 'En proceso', 'btn-editar'));
+                    }
+                    if (pedido.estado === 'pendiente' || pedido.estado === 'en_proceso') {
+                        acciones.appendChild(crearAccionPedido(
+                            pedido.id,
+                            'surtido',
+                            pedido.tipo === 'reposicion' ? 'Recibir' : 'Completar',
+                            'btn-estrategia-push'
+                        ));
+                        acciones.appendChild(crearAccionPedido(pedido.id, 'cancelado', 'Cancelar', 'btn-eliminar'));
+                    } else {
+                        acciones.textContent = '—';
+                    }
+                    tr.appendChild(acciones);
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error al cargar pedidos:', error);
+                document.getElementById('tabla-pedidos-body').innerHTML =
+                    '<tr><td colspan="7" style="text-align:center;color:#dc3545;">No se pudieron cargar los pedidos.</td></tr>';
+            }
+        }
+
+        function crearAccionPedido(id, estado, texto, clase) {
+            const boton = document.createElement('button');
+            boton.type = 'button';
+            boton.className = `btn-accion ${clase}`;
+            boton.textContent = texto;
+            boton.addEventListener('click', () => actualizarEstadoPedido(id, estado));
+            return boton;
+        }
+
+        async function actualizarEstadoPedido(id, estado) {
+            const pedido = cachePedidos.find(item => Number(item.id) === Number(id));
+            const confirmacion = estado === 'surtido'
+                ? (pedido?.tipo === 'reposicion'
+                    ? '¿Confirmas que se recibió el pedido? Se actualizará el inventario.'
+                    : '¿Confirmas que se completó la venta? Se descontará del inventario.')
+                : estado === 'cancelado' ? '¿Deseas cancelar este pedido?' : null;
+            if (confirmacion && !window.confirm(confirmacion)) return;
+
+            try {
+                const respuesta = await fetch('php/admin_api.php?action=pedido', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ id: Number(id), estado })
+                });
+                const resultado = await respuesta.json();
+                if (!respuesta.ok || !resultado.success) {
+                    throw new Error(resultado.error || 'No se pudo actualizar el pedido.');
+                }
+                await cargarDatosAdmin();
+                await cargarPedidos(false);
+            } catch (error) {
+                console.error('Error al actualizar pedido:', error);
+                alert(error.message || 'No se pudo actualizar el pedido.');
+            }
+        }
+
+        function actualizarProveedoresPedido(proveedorSeleccionado = '') {
+            const select = document.getElementById('pedido-proveedor');
+            select.replaceChildren(new Option('Selecciona un proveedor', ''));
+            const proveedores = new Set(
+                cacheProveedores.map(proveedor => proveedor.nombre).filter(Boolean)
+            );
+            cacheProductos.forEach(producto => {
+                if (producto.proveedor) proveedores.add(producto.proveedor);
+            });
+            [...proveedores].sort((a, b) => a.localeCompare(b, 'es')).forEach(nombre => {
+                select.add(new Option(nombre, nombre));
+            });
+            select.value = proveedorSeleccionado;
+        }
+
+        document.getElementById('filtro-pedido-estado').addEventListener('change', () => cargarPedidos(false));
+        document.getElementById('filtro-pedido-tipo').addEventListener('change', () => cargarPedidos(false));
+        document.getElementById('pedido-producto').addEventListener('change', event => {
+            const producto = cacheProductos.find(item => String(item.id) === event.target.value);
+            actualizarProveedoresPedido(producto?.proveedor || '');
+        });
+
+        document.getElementById('btn-nuevo-pedido').addEventListener('click', () => {
+            if (!cacheProductos.length) {
+                alert('Registra primero un producto para poder generar un pedido.');
+                return;
+            }
+            const form = document.getElementById('form-pedido');
+            form.reset();
+            const selectProducto = document.getElementById('pedido-producto');
+            selectProducto.replaceChildren();
+            cacheProductos.forEach(producto => {
+                selectProducto.add(new Option(producto.name || producto.nombre || '', String(producto.id)));
+            });
+            const producto = cacheProductos.find(item => String(item.id) === selectProducto.value);
+            actualizarProveedoresPedido(producto?.proveedor || '');
+            const hoy = new Date();
+            hoy.setMinutes(hoy.getMinutes() - hoy.getTimezoneOffset());
+            document.getElementById('pedido-fecha').value = hoy.toISOString().slice(0, 10);
+            document.getElementById('modal-pedido').classList.add('activo');
+        });
+
+        document.getElementById('form-pedido').addEventListener('submit', async event => {
+            event.preventDefault();
+            const payload = {
+                producto_id: Number(document.getElementById('pedido-producto').value),
+                cantidad: Number(document.getElementById('pedido-cantidad').value),
+                tipo: document.getElementById('pedido-tipo').value,
+                proveedor: document.getElementById('pedido-proveedor').value,
+                fecha: document.getElementById('pedido-fecha').value,
+                notas: document.getElementById('pedido-notas').value.trim()
+            };
+            const boton = event.currentTarget.querySelector('button[type="submit"]');
+            boton.disabled = true;
+            try {
+                const respuesta = await fetch('php/admin_api.php?action=pedido', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                });
+                const resultado = await respuesta.json();
+                if (!respuesta.ok || !resultado.success) {
+                    throw new Error(resultado.error || 'No se pudo guardar el pedido.');
+                }
+                document.getElementById('modal-pedido').classList.remove('activo');
+                await cargarDatosAdmin();
+                await cargarPedidos(false);
+            } catch (error) {
+                console.error('Error al guardar pedido:', error);
+                alert(error.message || 'No se pudo guardar el pedido.');
+            } finally {
+                boton.disabled = false;
+            }
+        });
+
+        function actualizarProductosLogistica() {
+            const select = document.getElementById('logistica-producto');
+            const productoActualId = select.value;
+            select.replaceChildren();
+            cacheProductos.forEach(producto => {
+                select.add(new Option(producto.name || producto.nombre || '', String(producto.id)));
+            });
+            if (!cacheProductos.some(producto => String(producto.id) === productoActualId)) {
+                select.value = cacheProductos.length ? String(cacheProductos[0].id) : '';
+            } else {
+                select.value = productoActualId;
+            }
+            sincronizarRadioLogistica();
+        }
+
+        function sincronizarRadioLogistica() {
+            const seleccionado = cacheProductos.find(producto =>
+                String(producto.id) === document.getElementById('logistica-producto').value
+            );
+            const estrategia = String(seleccionado?.estrategia_logistica || '').toLowerCase() === 'pull'
+                ? 'Pull'
+                : 'Push';
+            document.querySelectorAll('input[name="logistica-estrategia"]').forEach(radio => {
+                radio.checked = radio.value === estrategia;
+            });
+        }
+
+        async function cargarLogistica(recargar = true) {
+            try {
+                if (recargar) await cargarDatosAdmin();
+                actualizarProductosLogistica();
+                const tbody = document.getElementById('tabla-logistica-body');
+                tbody.replaceChildren();
+
+                if (!cacheProductos.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay productos registrados.</td></tr>';
+                    return;
+                }
+
+                cacheProductos.forEach(producto => {
+                    const estrategia = String(producto.estrategia_logistica || '').toLowerCase() === 'pull'
+                        ? 'PULL'
+                        : 'PUSH';
+                    const tr = document.createElement('tr');
+                    [
+                        producto.name || producto.nombre || '',
+                        Number(producto.stock_actual) || 0,
+                        Number(producto.stock_minimo) || 0,
+                        Number(producto.stock_maximo) || 0
+                    ].forEach(valor => {
+                        const td = document.createElement('td');
+                        td.textContent = String(valor);
+                        tr.appendChild(td);
+                    });
+
+                    const estrategiaCell = document.createElement('td');
+                    const badge = document.createElement('span');
+                    badge.className = `logistica-badge logistica-badge-${estrategia.toLowerCase()}`;
+                    badge.textContent = estrategia;
+                    estrategiaCell.appendChild(badge);
+                    tr.appendChild(estrategiaCell);
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error al cargar logística:', error);
+                document.getElementById('tabla-logistica-body').innerHTML =
+                    '<tr><td colspan="5" style="text-align:center;color:#dc3545;">No se pudo cargar la configuración logística.</td></tr>';
+            }
+        }
+
+        document.getElementById('logistica-producto').addEventListener('change', sincronizarRadioLogistica);
+        document.getElementById('btn-guardar-logistica').addEventListener('click', async () => {
+            const productoId = document.getElementById('logistica-producto').value;
+            const estrategia = document.querySelector('input[name="logistica-estrategia"]:checked')?.value;
+            if (!productoId || !estrategia) {
+                alert('Selecciona un producto y una estrategia.');
+                return;
+            }
+
+            const boton = document.getElementById('btn-guardar-logistica');
+            boton.disabled = true;
+            try {
+                const respuesta = await fetch('php/admin_products.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ id: Number(productoId), estrategia_logistica: estrategia })
+                });
+                const resultado = await respuesta.json();
+                if (!respuesta.ok || !resultado.success) {
+                    throw new Error(resultado.error || 'No se pudo guardar la estrategia.');
+                }
+                await cargarDatosAdmin();
+                await cargarLogistica(false);
+            } catch (error) {
+                console.error('Error al guardar estrategia logística:', error);
+                alert(error.message || 'No se pudo guardar la estrategia.');
+            } finally {
+                boton.disabled = false;
+            }
+        });
+
+        document.getElementById('filtro-movimiento-tipo').addEventListener('change', () => cargarMovimientos(false));
+        document.getElementById('filtro-movimiento-producto').addEventListener('change', () => cargarMovimientos(false));
+
+        document.getElementById('btn-nuevo-movimiento').addEventListener('click', () => {
+            const selectProducto = document.getElementById('movimiento-producto');
+            selectProducto.replaceChildren();
+            cacheProductos.forEach(producto => {
+                selectProducto.add(new Option(producto.name || producto.nombre || '', String(producto.id)));
+            });
+            if (!cacheProductos.length) {
+                alert('Registra primero un producto para poder crear un movimiento.');
+                return;
+            }
+            document.getElementById('form-movimiento').reset();
+            document.getElementById('modal-movimiento').classList.add('activo');
+        });
+
+        document.getElementById('form-movimiento').addEventListener('submit', async event => {
+            event.preventDefault();
+            const payload = {
+                producto_id: Number(document.getElementById('movimiento-producto').value),
+                tipo: document.getElementById('movimiento-tipo').value,
+                cantidad: Number(document.getElementById('movimiento-cantidad').value),
+                motivo: document.getElementById('movimiento-motivo').value.trim()
+            };
+            const boton = event.currentTarget.querySelector('button[type="submit"]');
+            boton.disabled = true;
+
+            try {
+                const respuesta = await fetch('php/admin_api.php?action=movimiento', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                });
+                const resultado = await respuesta.json();
+                if (!respuesta.ok || !resultado.success) {
+                    throw new Error(resultado.error || 'No se pudo registrar el movimiento.');
+                }
+
+                document.getElementById('modal-movimiento').classList.remove('activo');
+                document.getElementById('form-movimiento').reset();
+                await cargarDatosAdmin();
+                await cargarMovimientos(false);
+            } catch (error) {
+                console.error('Error al registrar movimiento:', error);
+                alert(error.message || 'No se pudo registrar el movimiento.');
+            } finally {
+                boton.disabled = false;
+            }
+        });
+
+        function editarInventario(id) {
+            const producto = cacheProductos.find(item => Number(item.id) === Number(id));
             if (!producto) return;
 
-            const estrategiaActual = String(producto.estrategia_logistica || '').toLowerCase() === 'pull' ? 'Pull' : 'Push';
-            const nuevaEstrategia = estrategiaActual === 'Push' ? 'Pull' : 'Push';
+            document.getElementById('inventario-producto-id').value = producto.id;
+            document.getElementById('inventario-producto-nombre').value = producto.name || producto.nombre || '';
+            document.getElementById('inventario-stock-actual').value = producto.stock_actual ?? 0;
+            document.getElementById('inventario-stock-minimo').value = producto.stock_minimo ?? 0;
+            document.getElementById('inventario-stock-maximo').value = producto.stock_maximo ?? 0;
+            document.getElementById('inventario-ubicacion').value = producto.ubicacion || '';
+            document.getElementById('modal-inventario').classList.add('activo');
+        }
+
+        document.getElementById('form-inventario').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const payload = {
+                id: Number(document.getElementById('inventario-producto-id').value),
+                stock_actual: Number(document.getElementById('inventario-stock-actual').value),
+                stock_minimo: Number(document.getElementById('inventario-stock-minimo').value),
+                stock_maximo: Number(document.getElementById('inventario-stock-maximo').value),
+                ubicacion: document.getElementById('inventario-ubicacion').value.trim()
+            };
+            const botonGuardar = event.currentTarget.querySelector('button[type="submit"]');
+            botonGuardar.disabled = true;
 
             try {
                 const respuesta = await fetch('php/admin_products.php', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'same-origin',
-                    body: JSON.stringify({ id, estrategia_logistica: nuevaEstrategia })
+                    body: JSON.stringify(payload)
                 });
                 const resultado = await respuesta.json();
                 if (!respuesta.ok || !resultado.success) {
-                    throw new Error(resultado.error || 'No se pudo cambiar la estrategia logística.');
+                    throw new Error(resultado.error || 'No se pudo actualizar el inventario.');
                 }
 
-                producto.estrategia_logistica = nuevaEstrategia;
-                await cargarProductos(false);
+                await cargarDatosAdmin();
+                await cargarInventario(false);
+                document.getElementById('modal-inventario').classList.remove('activo');
             } catch (error) {
-                console.error('Error al cambiar la estrategia logística:', error);
-                alert(error.message || 'No se pudo cambiar la estrategia logística.');
+                console.error('Error al editar inventario:', error);
+                alert(error.message || 'No se pudo actualizar el inventario.');
+            } finally {
+                botonGuardar.disabled = false;
+            }
+        });
+
+        function abrirModalProveedor(proveedor = null) {
+            const modal = document.getElementById('modal-proveedor');
+            const titulo = document.getElementById('modal-proveedor-titulo');
+            document.getElementById('form-proveedor').reset();
+            document.getElementById('proveedor-id').value = proveedor ? proveedor.id || '' : '';
+            document.getElementById('proveedor-nombre-anterior').value = proveedor && !proveedor.id ? proveedor.nombre || '' : '';
+            document.getElementById('proveedor-nombre').value = proveedor?.nombre || '';
+            document.getElementById('proveedor-contacto').value = proveedor?.contacto || '';
+            document.getElementById('proveedor-email').value = proveedor?.email || '';
+            document.getElementById('proveedor-telefono').value = proveedor?.telefono || '';
+            document.getElementById('proveedor-productos').value = Array.isArray(proveedor?.productos) ? proveedor.productos.join('\n') : '';
+            titulo.textContent = proveedor ? 'Editar Proveedor' : 'Agregar Proveedor';
+            modal.classList.add('activo');
+        }
+
+        async function cargarProveedores(recargar = true) {
+            try {
+                if (recargar) await cargarDatosAdmin();
+                const tbody = document.getElementById('tabla-proveedores-body');
+                tbody.innerHTML = '';
+
+                cacheProveedores.forEach((proveedor, indice) => {
+                    const tr = document.createElement('tr');
+                    const valores = [proveedor.nombre, proveedor.contacto, proveedor.email, proveedor.telefono];
+                    valores.forEach((valor, columna) => {
+                        const td = document.createElement('td');
+                        td.style.fontSize = '17px';
+                        td.style.color = columna === 0 ? '#1d2438' : '#2b3248';
+                        if (columna === 0) td.style.fontWeight = '600';
+                        td.textContent = valor || '';
+                        tr.appendChild(td);
+                    });
+
+                    const productosCell = document.createElement('td');
+                    (Array.isArray(proveedor.productos) ? proveedor.productos : []).forEach(producto => {
+                        const chip = document.createElement('span');
+                        chip.className = 'product-chip';
+                        chip.textContent = producto;
+                        productosCell.appendChild(chip);
+                    });
+                    if (!productosCell.childElementCount) {
+                        productosCell.textContent = 'Sin productos';
+                    }
+                    tr.appendChild(productosCell);
+
+                    const acciones = document.createElement('td');
+                    acciones.className = 'acciones';
+                    acciones.style.minWidth = 'auto';
+                    acciones.style.justifyContent = 'center';
+                    const editar = document.createElement('button');
+                    editar.className = 'btn-accion btn-editar';
+                    editar.type = 'button';
+                    editar.innerHTML = '<i class="fas fa-edit"></i>';
+                    editar.setAttribute('aria-label', `Editar ${proveedor.nombre}`);
+                    editar.addEventListener('click', () => abrirModalProveedor(cacheProveedores[indice]));
+                    acciones.appendChild(editar);
+                    tr.appendChild(acciones);
+                    tbody.appendChild(tr);
+                });
+                if (!cacheProveedores.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#666;">No hay proveedores registrados.</td></tr>';
+                }
+            } catch (e) {
+                console.error('Error al cargar proveedores:', e);
+                document.getElementById('tabla-proveedores-body').innerHTML =
+                    '<tr><td colspan="6" style="text-align:center;color:#dc3545;">No se pudieron cargar los proveedores.</td></tr>';
             }
         }
+
+        document.getElementById('form-proveedor').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('proveedor-id').value;
+            const nombreAnterior = document.getElementById('proveedor-nombre-anterior').value;
+            const nombre = document.getElementById('proveedor-nombre').value.trim();
+            const contacto = document.getElementById('proveedor-contacto').value.trim();
+            const email = document.getElementById('proveedor-email').value.trim();
+            const telefono = document.getElementById('proveedor-telefono').value.trim();
+            const productos = document.getElementById('proveedor-productos').value
+                .split('\n')
+                .map(item => item.trim())
+                .filter(Boolean);
+            const datosProveedor = { nombre, contacto, email, telefono, productos };
+            if (id) datosProveedor.id = Number(id);
+            if (nombreAnterior) datosProveedor.nombreAnterior = nombreAnterior;
+
+            const botonGuardar = document.querySelector('#form-proveedor button[type="submit"]');
+            botonGuardar.disabled = true;
+            try {
+                const respuesta = await fetch('php/admin_api.php?action=proveedor', {
+                    method: id ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(datosProveedor)
+                });
+                const resultado = await respuesta.json();
+                if (!respuesta.ok || !resultado.success) {
+                    throw new Error(resultado.error || 'No se pudo guardar el proveedor.');
+                }
+
+                document.getElementById('modal-proveedor').classList.remove('activo');
+                await cargarProveedores();
+            } catch (error) {
+                console.error('Error al guardar proveedor:', error);
+                alert(error.message || 'Ocurrió un error al guardar el proveedor.');
+            } finally {
+                botonGuardar.disabled = false;
+            }
+        });
 
         async function cargarVentas(recargar = true) {
             try {
@@ -1114,10 +2135,13 @@
             document.getElementById('producto-descripcion').value = '';
             document.getElementById('producto-categoria').value = '';
             document.getElementById('producto-proveedor').value = '';
+            document.getElementById('producto-ubicacion').value = '';
             document.getElementById('producto-stock-actual').value = '0';
             document.getElementById('producto-stock-minimo').value = '0';
+            document.getElementById('producto-stock-maximo').value = '0';
             document.getElementById('producto-estrategia-logistica').value = 'Push';
             document.getElementById('producto-precio').value = '';
+            document.getElementById('producto-activo').checked = true;
             modalProducto.classList.add('activo');
         });
 
@@ -1130,11 +2154,14 @@
             document.getElementById('producto-descripcion').value = p.description || '';
             document.getElementById('producto-categoria').value = p.category || '';
             document.getElementById('producto-proveedor').value = p.proveedor || '';
+            document.getElementById('producto-ubicacion').value = p.ubicacion || '';
             document.getElementById('producto-stock-actual').value = p.stock_actual ?? 0;
             document.getElementById('producto-stock-minimo').value = p.stock_minimo ?? 0;
+            document.getElementById('producto-stock-maximo').value = p.stock_maximo ?? 0;
             document.getElementById('producto-estrategia-logistica').value =
                 String(p.estrategia_logistica || '').toLowerCase() === 'pull' ? 'Pull' : 'Push';
             document.getElementById('producto-precio').value = p.price || p.precio;
+            document.getElementById('producto-activo').checked = Number(p.active) === 1 || p.active === true;
             modalProducto.classList.add('activo');
         }
 
@@ -1166,10 +2193,13 @@
                 description: document.getElementById('producto-descripcion').value.trim(),
                 category: document.getElementById('producto-categoria').value.trim(),
                 proveedor: document.getElementById('producto-proveedor').value.trim(),
+                ubicacion: document.getElementById('producto-ubicacion').value.trim(),
                 stock_actual: parseInt(document.getElementById('producto-stock-actual').value, 10),
                 stock_minimo: parseInt(document.getElementById('producto-stock-minimo').value, 10),
+                stock_maximo: parseInt(document.getElementById('producto-stock-maximo').value, 10),
                 estrategia_logistica: document.getElementById('producto-estrategia-logistica').value.trim(),
-                price: parseFloat(document.getElementById('producto-precio').value)
+                price: parseFloat(document.getElementById('producto-precio').value),
+                active: document.getElementById('producto-activo').checked
             };
 
             const respuesta = await fetch('php/admin_products.php', {
@@ -1183,7 +2213,11 @@
             }
 
             await cargarDatosAdmin();
-            cargarProductos(false);
+            if (vistaActual === 'inventario') {
+                await cargarInventario(false);
+            } else {
+                await cargarProductos(false);
+            }
             cerrarModales();
         });
 

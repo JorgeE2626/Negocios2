@@ -59,20 +59,29 @@ try {
             $price = floatval($input['price']);
             $category = cleanInput($input['category']);
             $proveedor = cleanInput($input['proveedor']);
+            $ubicacion = cleanInput($input['ubicacion'] ?? '');
+            if (mb_strlen($ubicacion, 'UTF-8') > 150) {
+                http_response_code(400);
+                echo json_encode(['error' => 'La ubicación no puede superar 150 caracteres']);
+                exit();
+            }
             $stock_actual = filter_var($input['stock_actual'] ?? 0, FILTER_VALIDATE_INT);
             $stock_minimo = filter_var($input['stock_minimo'] ?? 0, FILTER_VALIDATE_INT);
+            $stock_maximo = filter_var($input['stock_maximo'] ?? 0, FILTER_VALIDATE_INT);
             $estrategia_logistica = cleanInput($input['estrategia_logistica'] ?? '');
-            if ($stock_actual === false || $stock_minimo === false || $stock_actual < 0 || $stock_minimo < 0 || $estrategia_logistica === '') {
+            if ($stock_actual === false || $stock_minimo === false || $stock_maximo === false
+                || $stock_actual < 0 || $stock_minimo < 0 || $stock_maximo < 0
+                || $estrategia_logistica === '') {
                 http_response_code(400);
-                echo json_encode(['error' => 'Stock y estrategia logística deben ser válidos']);
+                echo json_encode(['error' => 'Los stocks y la estrategia logística deben ser válidos']);
                 exit();
             }
             $features = isset($input['features']) ? json_encode($input['features']) : '[]';
             $image_icon = cleanInput($input['image_icon'] ?? '');
             $active = isset($input['active']) ? (bool)$input['active'] : true;
             
-            $stmt = $pdo->prepare("INSERT INTO productos (name, description, price, category, proveedor, stock_actual, stock_minimo, estrategia_logistica, features, image_icon, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$name, $description, $price, $category, $proveedor, $stock_actual, $stock_minimo, $estrategia_logistica, $features, $image_icon, $active]);
+            $stmt = $pdo->prepare("INSERT INTO productos (name, description, price, category, proveedor, ubicacion, stock_actual, stock_minimo, stock_maximo, estrategia_logistica, features, image_icon, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$name, $description, $price, $category, $proveedor, $ubicacion, $stock_actual, $stock_minimo, $stock_maximo, $estrategia_logistica, $features, $image_icon, $active]);
             
             $product_id = $pdo->lastInsertId();
             
@@ -141,6 +150,16 @@ try {
                 $updates[] = "proveedor = ?";
                 $params[] = $proveedor;
             }
+            if (isset($input['ubicacion'])) {
+                $ubicacion = trim((string) $input['ubicacion']);
+                if (mb_strlen($ubicacion, 'UTF-8') > 150) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'La ubicación no puede superar 150 caracteres']);
+                    exit();
+                }
+                $updates[] = "ubicacion = ?";
+                $params[] = cleanInput($ubicacion);
+            }
             if (isset($input['stock_actual'])) {
                 $stockActual = filter_var($input['stock_actual'], FILTER_VALIDATE_INT);
                 if ($stockActual === false || $stockActual < 0) {
@@ -160,6 +179,16 @@ try {
                 }
                 $updates[] = "stock_minimo = ?";
                 $params[] = $stockMinimo;
+            }
+            if (isset($input['stock_maximo'])) {
+                $stockMaximo = filter_var($input['stock_maximo'], FILTER_VALIDATE_INT);
+                if ($stockMaximo === false || $stockMaximo < 0) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'El stock máximo debe ser un entero no negativo']);
+                    exit();
+                }
+                $updates[] = "stock_maximo = ?";
+                $params[] = $stockMaximo;
             }
             if (isset($input['estrategia_logistica'])) {
                 $estrategia = cleanInput($input['estrategia_logistica']);
