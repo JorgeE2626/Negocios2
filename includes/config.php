@@ -113,6 +113,11 @@ function createAutomaticPushOrder(PDO $pdo, array $product, int $stockActualizad
         return null;
     }
 
+    $stockMinimo = (int) ($product['stock_minimo'] ?? 0);
+    if ($stockActualizado > $stockMinimo) {
+        return null;
+    }
+
     $pedidosPendientes = $pdo->prepare(
         "SELECT COALESCE(SUM(cantidad), 0)
          FROM pedidos_reposicion

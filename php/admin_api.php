@@ -328,7 +328,7 @@ try {
 
             if ($nuevoEstado === 'surtido') {
                 $productoStmt = $pdo->prepare(
-                    'SELECT id, name, proveedor, stock_actual, stock_maximo, estrategia_logistica
+                    'SELECT id, name, proveedor, stock_actual, stock_minimo, stock_maximo, estrategia_logistica
                      FROM productos WHERE id = ? FOR UPDATE'
                 );
                 $productoStmt->execute([$pedido['producto_id']]);
@@ -409,7 +409,7 @@ try {
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare(
-                'SELECT id, name, proveedor, stock_actual, stock_maximo, estrategia_logistica
+                'SELECT id, name, proveedor, stock_actual, stock_minimo, stock_maximo, estrategia_logistica
                  FROM productos WHERE id = ? FOR UPDATE'
             );
             $stmt->execute([$productoId]);
