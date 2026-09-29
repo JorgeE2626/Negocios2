@@ -90,7 +90,7 @@ try {
                 $stmt = $pdo->prepare("SELECT * FROM productos WHERE id = ?");
                 $stmt->execute([$product_id]);
                 $producto = $stmt->fetch();
-                $pedidoAutomatico = createAutomaticPushOrder(
+                $pedidoAutomatico = createAutomaticRestockOrder(
                     $pdo,
                     $producto,
                     (int) $producto['stock_actual'],
@@ -256,7 +256,7 @@ try {
                 $stmt = $pdo->prepare('SELECT * FROM productos WHERE id = ?');
                 $stmt->execute([$id]);
                 $producto = $stmt->fetch();
-                $pedidoAutomatico = createAutomaticPushOrder(
+                $pedidoAutomatico = createAutomaticRestockOrder(
                     $pdo,
                     $producto,
                     (int) $producto['stock_actual'],

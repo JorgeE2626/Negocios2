@@ -102,19 +102,14 @@ function ensurePurchaseOrderSchema(PDO $pdo): void {
     );
 }
 
-function createAutomaticPushOrder(PDO $pdo, array $product, int $stockActualizado, ?int $usuarioId): ?array
+function createAutomaticRestockOrder(PDO $pdo, array $product, int $stockActualizado, ?int $usuarioId): ?array
 {
-    if (strtolower(trim((string) ($product['estrategia_logistica'] ?? ''))) === 'pull') {
-        return null;
-    }
-
     $stockMaximo = (int) ($product['stock_maximo'] ?? 0);
     if ($stockMaximo <= 0) {
         return null;
     }
 
-    $stockMinimo = (int) ($product['stock_minimo'] ?? 0);
-    if ($stockActualizado > $stockMinimo) {
+    if ($stockActualizado >= $stockMaximo) {
         return null;
     }
 
@@ -141,7 +136,7 @@ function createAutomaticPushOrder(PDO $pdo, array $product, int $stockActualizad
         $product['id'],
         (string) ($product['proveedor'] ?? ''),
         $cantidad,
-        'Pedido automático por estrategia Push',
+        'Pedido automático por nivel de stock',
         $usuarioId
     ]);
     $pedidoId = (int) $pdo->lastInsertId();

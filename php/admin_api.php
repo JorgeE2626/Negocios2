@@ -367,7 +367,7 @@ try {
                     'Pedido ' . $pedido['folio']
                 ]);
                 if (!$esReposicion) {
-                    $pedidoAutomatico = createAutomaticPushOrder(
+                    $pedidoAutomatico = createAutomaticRestockOrder(
                         $pdo,
                         $producto,
                         $nuevoStock,
@@ -449,7 +449,7 @@ try {
             ]);
             $movimientoId = $pdo->lastInsertId();
             $pedidoAutomatico = $tipo === 'salida'
-                ? createAutomaticPushOrder(
+                ? createAutomaticRestockOrder(
                     $pdo,
                     $producto,
                     $stockActualizado,
