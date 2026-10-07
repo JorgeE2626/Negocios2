@@ -43,7 +43,7 @@
             <div class="cart-header">
                 <div>
                     <h1><i class="fas fa-shopping-cart"></i> Carrito</h1>
-                    <small>Vista: productos de ejemplo para validar diseño.</small>
+                    <small>Revisa tus productos y el historial de pedidos pagados.</small>
                 </div>
                 <small id="itemsCount">0 artículos</small>
             </div>
@@ -64,6 +64,8 @@
                     <div id="emptyState" class="empty" style="display:none;">
                         Tu carrito está vacío.
                     </div>
+                    <div id="mensajePedidoPagado" role="status" aria-live="polite"
+                        style="display:none;margin-top:20px;padding:14px 18px;background:#dcfce7;color:#166534;border-radius:10px;font-weight:600;"></div>
                 </div>
 
                 <!-- Resumen -->
@@ -90,8 +92,8 @@
                             <i class="fas fa-arrow-left"></i> Seguir comprando
                         </a>
 
-                        <a href="php/pago.php" class="btn btn-primary btn-block">
-                            <i class="fas fa-credit-card"></i> Continuar a pago
+                        <a href="checkout.html" class="btn btn-primary btn-block">
+                            <i class="fas fa-credit-card"></i> Pagar
                         </a>
                     </div>
 
@@ -101,6 +103,10 @@
                 </aside>
 
             </div>
+            <section id="historialCompras" class="cart-card" style="display:none;margin-top:24px;">
+                <h2>Pedidos hechos y pagados</h2>
+                <div id="listaComprasPagadas"></div>
+            </section>
         </div>
     </main>
 
@@ -118,6 +124,52 @@
 
             // Imagen por defecto si no viene guardada
             const IMG_DEFAULT = "imagenes/default.png"; // <-- cambia a tu ruta real
+
+            function renderComprasPagadas() {
+                const historial = document.getElementById("historialCompras");
+                const lista = document.getElementById("listaComprasPagadas");
+                let compras = [];
+                try {
+                    compras = JSON.parse(localStorage.getItem("comprasPagadas") || "[]");
+                    if (!Array.isArray(compras)) throw new Error("El historial de compras no es válido.");
+                } catch (error) {
+                    console.error("No se pudo cargar el historial de compras:", error);
+                    return;
+                }
+                lista.replaceChildren();
+                historial.style.display = compras.length ? "block" : "none";
+
+                compras.forEach(compra => {
+                    const tarjeta = document.createElement("article");
+                    tarjeta.style.cssText = "padding:16px 0;border-bottom:1px solid #e5e7eb;";
+                    const titulo = document.createElement("h3");
+                    titulo.textContent = `Pedido ${compra.folio || ""} — Hecho y pagado (demostración)`;
+                    const fecha = document.createElement("p");
+                    const fechaCompra = new Date(compra.fecha);
+                    fecha.textContent = Number.isNaN(fechaCompra.getTime())
+                        ? ""
+                        : fechaCompra.toLocaleString("es-MX");
+                    const productos = document.createElement("ul");
+                    (Array.isArray(compra.items) ? compra.items : []).forEach(item => {
+                        const renglon = document.createElement("li");
+                        const descripcion = item.descripcion ? ` — ${item.descripcion}` : "";
+                        renglon.textContent =
+                            `${item.producto || "Producto"}${descripcion} × ${Number(item.cantidad) || 0}`;
+                        productos.appendChild(renglon);
+                    });
+                    const total = document.createElement("strong");
+                    total.textContent = `Total: $${Number(compra.total || 0).toFixed(2)} MXN`;
+                    tarjeta.append(titulo, fecha, productos, total);
+                    lista.appendChild(tarjeta);
+                });
+            }
+
+            const pedidoPagado = new URLSearchParams(window.location.search).get("pedido");
+            if (pedidoPagado) {
+                const mensaje = document.getElementById("mensajePedidoPagado");
+                mensaje.textContent = `Pedido ${pedidoPagado} hecho y pagado. Puedes seguir comprando; tus compras anteriores se conservan abajo.`;
+                mensaje.style.display = "block";
+            }
 
             // -------- FUNCION RENDER ----------
             function renderCarrito() {
@@ -197,8 +249,6 @@
                 itemsCount.textContent = totalArticulos + (totalArticulos === 1 ? " artículo" : " artículos");
 
                 localStorage.setItem("carrito", JSON.stringify(carrito));
-                console.log("CARRITO:", carrito);
-                carrito.forEach((it, i) => console.log(i, it.producto, "imagen=", it.imagen));
             }
 
             // -------- CAMBIAR CANTIDAD ----------
@@ -219,6 +269,7 @@
             }
 
             renderCarrito();
+            renderComprasPagadas();
         });
     </script>
 </body>

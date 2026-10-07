@@ -2,62 +2,199 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finalizar Compra | LMY</title>
     <link rel="stylesheet" href="Proyecto.css">
-    <script src="https://www.paypal.com/sdk/js?client-id=TU_CLIENT_ID&currency=MXN"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container" style="padding: 50px; text-align: center;">
-        <h2>Resumen de tu Pedido</h2>
-        <div id="resumen-pago" style="margin-bottom: 20px;">
-            </div>
-        
-        <div id="paypal-button-container" style="max-width: 400px; margin: 0 auto;"></div>
-    </div>
+    <main class="container" style="padding:50px 20px;text-align:center;max-width:900px;">
+        <h1>Resumen de tu pedido</h1>
+        <p style="margin:12px auto;padding:12px;background:#fff3cd;color:#664d03;border-radius:8px;">
+            Pago de demostración: no se realizará ningún cobro real.
+        </p>
+        <div id="resumen-pago" style="margin:0 auto 20px;max-width:600px;text-align:left;"></div>
+        <p id="estado-pago" role="status" aria-live="polite"></p>
+        <button id="btn-pagar-demo" class="btn btn-primary" type="button" disabled>
+            <i class="fas fa-credit-card" aria-hidden="true"></i> Pagar
+        </button>
+        <p><a href="carrito.html">Volver al carrito</a></p>
+    </main>
 
     <script>
-        // 1. Obtener datos del carrito
-        const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-        const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+        const cartKey = "carrito";
+        const historyKey = "comprasPagadas";
+        const resumenPago = document.getElementById("resumen-pago");
+        const estadoPago = document.getElementById("estado-pago");
+        const botonPagar = document.getElementById("btn-pagar-demo");
+        const moneda = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
+        let csrfToken = "";
+        let carritoPagado = [];
+        let operationId = "";
+        let pagoConfirmado = false;
+        let folioConfirmado = "";
 
-        // 2. Mostrar el total al usuario
-        document.getElementById('resumen-pago').innerHTML = `<h3>Total a pagar: $${total} MXN</h3>`;
-
-        // 3. Configurar PayPal
-        paypal.Buttons({
-            style: {
-                layout: 'vertical',
-                color:  'blue',
-                shape:  'rect',
-                label:  'pay'
-            },
-            createOrder: function(data, actions) {
-                if (total <= 0) {
-                    alert("El carrito está vacío");
-                    return;
+        function leerCarrito() {
+            const carrito = JSON.parse(localStorage.getItem(cartKey) || "[]");
+            if (!Array.isArray(carrito)) throw new Error("El contenido del carrito no es válido.");
+            return carrito.map(item => {
+                const precio = Number(item.precio);
+                const cantidad = Number(item.cantidad);
+                if (!Number.isFinite(precio) || precio <= 0 || !Number.isInteger(cantidad) || cantidad < 1) {
+                    throw new Error("Hay un producto con precio o cantidad inválidos en el carrito.");
                 }
-                return actions.order.create({
-                    purchase_units: [{
-                        amount: {
-                            value: total.toString() // IMPORTANTE: Debe ser string
-                        },
-                        description: "Compra en LMY Store"
-                    }]
-                });
-            },
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(orderData) {
-                    console.log('Resultado de captura', orderData);
-                    alert('¡Gracias por tu compra, ' + orderData.payer.name.given_name + '!');
-                    localStorage.removeItem("carrito"); 
-                    window.location.href = "index.html"; // Redirigir al inicio
-                });
-            },
-            onError: function (err) {
-                console.error('Error en PayPal:', err);
-                alert('Hubo un error con el pago. Revisa la consola para más detalles.');
+                return { ...item, precio, cantidad };
+            });
+        }
+
+        function renderResumen(carrito) {
+            resumenPago.replaceChildren();
+            const lista = document.createElement("ul");
+            lista.style.cssText = "list-style:none;padding:0;";
+            carrito.forEach(item => {
+                const fila = document.createElement("li");
+                fila.style.cssText = "padding:10px 0;border-bottom:1px solid #e5e7eb;";
+                const descripcion = item.descripcion ? ` — ${item.descripcion}` : "";
+                fila.textContent = `${item.producto || "Producto"}${descripcion} × ${item.cantidad}: ${moneda.format(item.precio * item.cantidad)}`;
+                lista.appendChild(fila);
+            });
+
+            const subtotal = carrito.reduce((suma, item) => suma + item.precio * item.cantidad, 0);
+            const envio = subtotal >= 500 ? 0 : 80;
+            const detalles = document.createElement("div");
+            detalles.style.cssText = "text-align:right;margin-top:16px;";
+            const total = document.createElement("h2");
+            total.textContent = `Total a pagar: ${moneda.format(subtotal + envio)} MXN`;
+            detalles.append(
+                Object.assign(document.createElement("p"), { textContent: `Subtotal: ${moneda.format(subtotal)}` }),
+                Object.assign(document.createElement("p"), { textContent: `Envío: ${moneda.format(envio)}` }),
+                total
+            );
+            resumenPago.append(lista, detalles);
+        }
+
+        function crearOperationId() {
+            if (window.crypto && typeof window.crypto.randomUUID === "function") {
+                return window.crypto.randomUUID().replaceAll("-", "");
             }
-        }).render('#paypal-button-container');
+            return Array.from(window.crypto.getRandomValues(new Uint8Array(16)))
+                .map(byte => byte.toString(16).padStart(2, "0"))
+                .join("");
+        }
+
+        function consumirCarritoPagado() {
+            const carritoActual = leerCarrito();
+            carritoPagado.forEach(comprado => {
+                let restante = comprado.cantidad;
+                for (let index = carritoActual.length - 1; index >= 0 && restante > 0; index--) {
+                    const actual = carritoActual[index];
+                    const actualId = String(actual.productId || "");
+                    const compradoId = String(comprado.productId || "");
+                    const coincide = actualId && compradoId
+                        ? actualId === compradoId
+                        : actual.producto === comprado.producto
+                            && (!actual.descripcion || !comprado.descripcion
+                                || actual.descripcion === comprado.descripcion);
+                    if (!coincide) continue;
+                    const descontar = Math.min(actual.cantidad, restante);
+                    actual.cantidad -= descontar;
+                    restante -= descontar;
+                    if (actual.cantidad === 0) carritoActual.splice(index, 1);
+                }
+            });
+            localStorage.setItem(cartKey, JSON.stringify(carritoActual));
+        }
+
+        function guardarCompraPagada(resultado) {
+            const compras = JSON.parse(localStorage.getItem(historyKey) || "[]");
+            if (!Array.isArray(compras)) throw new Error("El historial de compras guardado no es válido.");
+            if (compras.some(compra => compra.folio === resultado.folio)) return;
+            compras.unshift({
+                folio: resultado.folio,
+                total: Number(resultado.total),
+                fecha: new Date().toISOString(),
+                items: resultado.items
+            });
+            localStorage.setItem(historyKey, JSON.stringify(compras));
+        }
+
+        async function postJson(url, body) {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-Token": csrfToken
+                },
+                credentials: "same-origin",
+                body: JSON.stringify(body)
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || "No se pudo procesar el pago.");
+            }
+            return result;
+        }
+
+        botonPagar.addEventListener("click", async () => {
+            botonPagar.disabled = true;
+            estadoPago.textContent = "Registrando la compra de demostración y actualizando el inventario...";
+            try {
+                const result = await postJson("php/pago_demo.php", {
+                    operationId,
+                    items: carritoPagado
+                });
+                pagoConfirmado = true;
+                botonPagar.disabled = true;
+                folioConfirmado = result.folio;
+                carritoPagado = result.items;
+                guardarCompraPagada(result);
+                consumirCarritoPagado();
+                sessionStorage.removeItem("operacionPagoDemo");
+                estadoPago.textContent = `Pago exitoso (demostración). Pedido ${result.folio} hecho y pagado. Volviendo al carrito...`;
+                window.setTimeout(() => {
+                    window.location.href = `carrito.html?pedido=${encodeURIComponent(result.folio)}`;
+                }, 1200);
+            } catch (error) {
+                if (pagoConfirmado) {
+                    estadoPago.textContent =
+                        `El pedido ya se registró como pagado, pero no se pudo actualizar el carrito local: ${error.message}`;
+                    window.setTimeout(() => {
+                        window.location.href = `carrito.html?pedido=${encodeURIComponent(folioConfirmado)}`;
+                    }, 1500);
+                } else {
+                    estadoPago.textContent = `${error.message} El carrito se conservó.`;
+                    botonPagar.disabled = false;
+                }
+            }
+        });
+
+        async function iniciarPago() {
+            try {
+                carritoPagado = leerCarrito();
+                if (carritoPagado.length === 0) {
+                    throw new Error("Tu carrito está vacío. Agrega productos antes de pagar.");
+                }
+                renderResumen(carritoPagado);
+                operationId = sessionStorage.getItem("operacionPagoDemo") || crearOperationId();
+                sessionStorage.setItem("operacionPagoDemo", operationId);
+
+                const response = await fetch("php/pago_demo.php", {
+                    cache: "no-store",
+                    credentials: "same-origin"
+                });
+                const configuration = await response.json();
+                if (!response.ok || !configuration.success) {
+                    throw new Error(configuration.error || "No se pudo preparar el pago.");
+                }
+                csrfToken = configuration.csrfToken;
+                botonPagar.disabled = false;
+            } catch (error) {
+                estadoPago.textContent = error.message || "No se pudo preparar la compra.";
+                botonPagar.disabled = true;
+            }
+        }
+
+        iniciarPago();
     </script>
 </body>
 </html>

@@ -225,6 +225,7 @@
                 </div>
 
             </div>
+            <p id="productos-admin-status" class="section-subtitle" role="status" aria-live="polite" hidden></p>
         </div>
     </section>
 
@@ -983,6 +984,23 @@
         }, observerOptions);
 
         document.addEventListener("DOMContentLoaded", () => {
+            const cartBadge = document.getElementById("cartBadge");
+            const actualizarContadorCarrito = () => {
+                try {
+                    const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
+                    const cantidad = Array.isArray(carrito)
+                        ? carrito.reduce((total, item) => total + (Number(item.cantidad) || 0), 0)
+                        : 0;
+                    if (cartBadge) cartBadge.textContent = String(cantidad);
+                } catch (error) {
+                    console.error("No se pudo actualizar el contador del carrito:", error);
+                }
+            };
+            actualizarContadorCarrito();
+            window.addEventListener("storage", event => {
+                if (event.key === "carrito") actualizarContadorCarrito();
+            });
+
             const animatedElements = document.querySelectorAll(".producto-card, .paquete-card, .contacto-item");
             animatedElements.forEach(el => {
                 el.style.opacity = "0";
@@ -990,7 +1008,86 @@
                 el.style.transition = "opacity 0.6s ease, transform 0.6s ease";
                 observer.observe(el);
             });
+
+            cargarProductosDelAdministrador();
         });
+
+        async function cargarProductosDelAdministrador() {
+            const grid = document.querySelector("#productos .productos-grid");
+            const status = document.getElementById("productos-admin-status");
+            if (!grid || !status) return;
+
+            try {
+                const response = await fetch("php/get_products.php", {
+                    cache: "no-store",
+                    credentials: "same-origin"
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success || !Array.isArray(data.productos)) {
+                    throw new Error(data.error || "No se pudieron cargar los productos.");
+                }
+
+                const formatter = new Intl.NumberFormat("es-MX", {
+                    style: "currency",
+                    currency: "MXN"
+                });
+                data.productos.forEach(producto => {
+                    const card = document.createElement("article");
+                    card.className = "producto-card";
+
+                    const image = document.createElement("div");
+                    image.className = "producto-image";
+                    const icon = document.createElement("i");
+                    const iconClass = /^[\w -]+$/.test(producto.image_icon || "")
+                        ? producto.image_icon.trim()
+                        : "fas fa-box-open";
+                    icon.className = iconClass || "fas fa-box-open";
+                    image.appendChild(icon);
+
+                    const overlay = document.createElement("div");
+                    overlay.className = "producto-overlay";
+                    const price = Number(producto.price);
+                    overlay.textContent = Number.isFinite(price) ? formatter.format(price) : "Precio por consultar";
+                    image.appendChild(overlay);
+
+                    const content = document.createElement("div");
+                    content.className = "producto-content";
+                    const title = document.createElement("h3");
+                    title.textContent = producto.name || "Producto";
+                    content.appendChild(title);
+
+                    if (producto.description) {
+                        const description = document.createElement("p");
+                        description.textContent = producto.description;
+                        content.appendChild(description);
+                    }
+
+                    if (producto.category) {
+                        const category = document.createElement("p");
+                        category.textContent = `Categoría: ${producto.category}`;
+                        content.appendChild(category);
+                    }
+
+                    const actions = document.createElement("div");
+                    actions.className = "btn-producto";
+                    const link = document.createElement("a");
+                    link.className = "btn-producto";
+                    link.href = `producto.html?id=${encodeURIComponent(producto.id)}`;
+                    link.textContent = "Ver descripción y comprar";
+                    actions.appendChild(link);
+
+                    card.append(image, content, actions);
+                    grid.appendChild(card);
+                    observer.observe(card);
+                });
+
+                status.textContent = "";
+                status.hidden = true;
+            } catch (error) {
+                status.textContent = error.message || "No se pudieron cargar los productos publicados.";
+                status.hidden = false;
+            }
+        }
 
         // Parallax hero
         window.addEventListener("scroll", () => {

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Producto | LMY</title>
+    <link rel="stylesheet" href="Proyecto.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <main class="container" style="padding-top:120px; padding-bottom:60px;">
+        <div class="back-button">
+            <a href="sistema.html#productos" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Volver a productos
+            </a>
+        </div>
+
+        <p id="producto-status" class="section-subtitle" role="status" aria-live="polite">Cargando producto...</p>
+        <section id="producto-detalle" class="producto-card" style="display:none;">
+            <div class="producto-container" style="display:flex; align-items:stretch;">
+                <div class="producto-image" style="flex:1; min-height:300px; height:auto;">
+                    <i id="producto-icono" class="fas fa-box-open"></i>
+                    <div class="producto-overlay">
+                        <span id="producto-precio" class="precio"></span>
+                    </div>
+                </div>
+                <div class="producto-content" style="flex:1;">
+                    <h1 id="producto-nombre"></h1>
+                    <p id="producto-descripcion"></p>
+                    <p id="producto-categoria" style="margin-top:12px;"></p>
+                    <ul id="producto-caracteristicas" class="producto-features"></ul>
+
+                    <label for="producto-cantidad">Cantidad:</label>
+                    <input type="number" id="producto-cantidad" min="1" max="100" value="1"
+                        style="display:block; width:100%; max-width:180px; padding:10px; margin:8px 0 20px;">
+
+                    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <button id="producto-comprar" class="btn btn-primary" type="button">
+                            <i class="fas fa-cart-plus"></i> Agregar al carrito
+                        </button>
+                        <a href="carrito.html" class="btn btn-outline">
+                            <i class="fas fa-shopping-cart"></i> Ver carrito (<span id="producto-cart-count">0</span>)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const statusProducto = document.getElementById("producto-status");
+        const detalleProducto = document.getElementById("producto-detalle");
+        let productoActual = null;
+
+        function actualizarContadorCarrito() {
+            try {
+                const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
+                const total = Array.isArray(carrito)
+                    ? carrito.reduce((suma, item) => suma + (Number(item.cantidad) || 0), 0)
+                    : 0;
+                document.getElementById("producto-cart-count").textContent = String(total);
+            } catch (error) {
+                console.error("No se pudo leer el carrito:", error);
+            }
+        }
+
+        window.addEventListener("storage", event => {
+            if (event.key === "carrito") actualizarContadorCarrito();
+        });
+
+        async function cargarDetalleProducto() {
+            const productId = new URLSearchParams(window.location.search).get("id");
+            if (!productId || !/^\d+$/.test(productId)) {
+                statusProducto.textContent = "El producto solicitado no es válido.";
+                return;
+            }
+
+            try {
+                const response = await fetch("php/get_products.php", {
+                    cache: "no-store",
+                    credentials: "same-origin"
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success || !Array.isArray(data.productos)) {
+                    throw new Error(data.error || "No se pudo cargar el producto.");
+                }
+
+                productoActual = data.productos.find(producto => String(producto.id) === productId);
+                if (!productoActual) {
+                    statusProducto.textContent = "Este producto ya no está disponible.";
+                    return;
+                }
+
+                const nombre = productoActual.name || "Producto";
+                const precio = Number(productoActual.price);
+                document.title = `${nombre} | LMY`;
+                document.getElementById("producto-nombre").textContent = nombre;
+                document.getElementById("producto-descripcion").textContent =
+                    productoActual.description || "Consulta con nosotros para conocer más detalles.";
+                document.getElementById("producto-categoria").textContent =
+                    productoActual.category ? `Categoría: ${productoActual.category}` : "";
+                document.getElementById("producto-precio").textContent = Number.isFinite(precio)
+                    ? new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(precio)
+                    : "Precio por consultar";
+
+                const iconClass = /^[\w -]+$/.test(productoActual.image_icon || "")
+                    ? productoActual.image_icon.trim()
+                    : "fas fa-box-open";
+                document.getElementById("producto-icono").className = iconClass || "fas fa-box-open";
+
+                const features = document.getElementById("producto-caracteristicas");
+                (Array.isArray(productoActual.features) ? productoActual.features : []).forEach(feature => {
+                    const item = document.createElement("li");
+                    const icon = document.createElement("i");
+                    icon.className = "fas fa-check";
+                    item.append(icon, document.createTextNode(` ${String(feature)}`));
+                    features.appendChild(item);
+                });
+
+                statusProducto.hidden = true;
+                detalleProducto.style.display = "block";
+            } catch (error) {
+                statusProducto.textContent = error.message || "No se pudo cargar el producto.";
+            }
+        }
+
+        document.getElementById("producto-comprar").addEventListener("click", () => {
+            if (!productoActual) return;
+
+            const quantityInput = document.getElementById("producto-cantidad");
+            const cantidad = Number(quantityInput.value);
+            if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 100) {
+                quantityInput.setCustomValidity("Ingresa una cantidad entre 1 y 100.");
+                quantityInput.reportValidity();
+                return;
+            }
+            quantityInput.setCustomValidity("");
+
+            try {
+                const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
+                if (!Array.isArray(carrito)) {
+                    throw new Error("El carrito guardado no tiene un formato válido.");
+                }
+
+                const productoId = String(productoActual.id);
+                const existente = carrito.find(item => String(item.productId || "") === productoId);
+                const item = existente || {
+                    productId: productoId,
+                    producto: productoActual.name || "Producto",
+                    descripcion: productoActual.description || productoActual.category || productoActual.name || "Producto",
+                    precio: Number(productoActual.price),
+                    cantidad: 0
+                };
+                item.cantidad += cantidad;
+                if (!existente) carrito.push(item);
+
+                localStorage.setItem("carrito", JSON.stringify(carrito));
+                const totalProductos = carrito.reduce((total, producto) => total + Number(producto.cantidad || 0), 0);
+                statusProducto.textContent =
+                    `Se agregó ${cantidad} ${cantidad === 1 ? "unidad" : "unidades"} de ${item.producto} al carrito. Ahora tienes ${totalProductos} productos en el carrito.`;
+                statusProducto.hidden = false;
+                actualizarContadorCarrito();
+                quantityInput.value = "1";
+            } catch (error) {
+                statusProducto.textContent = error.message || "No se pudo agregar el producto al carrito.";
+                statusProducto.hidden = false;
+            }
+        });
+
+        actualizarContadorCarrito();
+        cargarDetalleProducto();
+    </script>
+</body>
+
+</html>

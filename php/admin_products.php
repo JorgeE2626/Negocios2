@@ -14,6 +14,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 $pdo = getDBConnection();
 ensureProductSchema($pdo);
 ensurePurchaseOrderSchema($pdo);
+ensureGlobalLogisticsSettingsSchema($pdo);
 
 try {
     switch ($method) {
@@ -69,7 +70,7 @@ try {
             $stock_actual = filter_var($input['stock_actual'] ?? 0, FILTER_VALIDATE_INT);
             $stock_minimo = filter_var($input['stock_minimo'] ?? 0, FILTER_VALIDATE_INT);
             $stock_maximo = filter_var($input['stock_maximo'] ?? 0, FILTER_VALIDATE_INT);
-            $estrategia_logistica = cleanInput($input['estrategia_logistica'] ?? '');
+            $estrategia_logistica = getGlobalLogisticsStrategy($pdo);
             if ($stock_actual === false || $stock_minimo === false || $stock_maximo === false
                 || $stock_actual < 0 || $stock_minimo < 0 || $stock_maximo < 0
                 || $estrategia_logistica === '') {

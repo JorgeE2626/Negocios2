@@ -48,7 +48,7 @@
 
                     <h4>Selecciona tu taza:</h4>
 
-                    <select class="select-producto" id="opcionesProducto" data-producto="Taza personalizada"
+                    <select class="select-producto" id="opcionesProducto" data-producto="Tazas Personalizadas"
                         data-mensaje="mensajeAgregado">
                         <option value="85">Taza blanca estándar - $85</option>
                         <option value="95">Taza mágica (cambia con calor) - $95</option>
@@ -66,7 +66,7 @@
                         </button>
 
                         <a href="carrito.html" class="btn btn-outline">
-                            <i class="fas fa-shopping-cart"></i> Ver carrito
+                            <i class="fas fa-shopping-cart"></i> Ver carrito (<span id="cartCount">0</span>)
                         </a>
 
                         <a href="prodrelacionados .html" class="btn btn-outline">
@@ -86,6 +86,22 @@
     </div>
 
     <script>
+        function actualizarContadorCarrito() {
+            try {
+                const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
+                const cantidad = Array.isArray(carrito)
+                    ? carrito.reduce((total, item) => total + (Number(item.cantidad) || 0), 0)
+                    : 0;
+                document.getElementById("cartCount").textContent = String(cantidad);
+            } catch (error) {
+                console.error("No se pudo actualizar el contador del carrito:", error);
+            }
+        }
+
+        window.addEventListener("storage", event => {
+            if (event.key === "carrito") actualizarContadorCarrito();
+        });
+
         function agregarCarritoDesdeSelect(selectId) {
 
             const select = document.getElementById(selectId);
@@ -130,10 +146,14 @@
 
             // guardar
             localStorage.setItem("carrito", JSON.stringify(carrito));
+            actualizarContadorCarrito();
 
             // mensaje visual
             const msg = document.getElementById(mensajeId);
             if (msg) {
+                const totalProductos = carrito.reduce((total, item) => total + Number(item.cantidad || 0), 0);
+                msg.textContent =
+                    `✔ Se agregó ${cantidad} ${cantidad === 1 ? "unidad" : "unidades"} al carrito. Tienes ${totalProductos} productos.`;
                 msg.style.display = "block";
                 setTimeout(() => {
                     msg.style.display = "none";
@@ -142,6 +162,8 @@
 
             cantidadInput.value = 1;
         }
+
+        actualizarContadorCarrito();
     </script>
 
 </body>

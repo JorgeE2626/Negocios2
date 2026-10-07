@@ -81,6 +81,21 @@ function ensureInventoryMovementSchema(PDO $pdo): void {
     );
 }
 
+function ensureSalesSchema(PDO $pdo): void {
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS ventas (
+            id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            folio VARCHAR(30) NOT NULL UNIQUE,
+            cliente_id INT NULL,
+            producto_id INT NULL,
+            total DECIMAL(10,2) NOT NULL,
+            fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_ventas_fecha (fecha),
+            INDEX idx_ventas_producto (producto_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+}
+
 function ensurePurchaseOrderSchema(PDO $pdo): void {
     $pdo->exec(
         "CREATE TABLE IF NOT EXISTS pedidos_reposicion (
@@ -102,8 +117,37 @@ function ensurePurchaseOrderSchema(PDO $pdo): void {
     );
 }
 
+function ensureGlobalLogisticsSettingsSchema(PDO $pdo): void
+{
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS configuracion_scm (
+            clave VARCHAR(64) NOT NULL PRIMARY KEY,
+            valor VARCHAR(50) NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+    $pdo->exec(
+        "INSERT IGNORE INTO configuracion_scm (clave, valor)
+         VALUES ('estrategia_global', 'Push')"
+    );
+}
+
+function getGlobalLogisticsStrategy(PDO $pdo): string
+{
+    $stmt = $pdo->prepare(
+        "SELECT valor FROM configuracion_scm WHERE clave = 'estrategia_global'"
+    );
+    $stmt->execute();
+    $strategy = $stmt->fetchColumn();
+
+    return in_array($strategy, ['Push', 'Pull'], true) ? $strategy : 'Push';
+}
+
 function createAutomaticRestockOrder(PDO $pdo, array $product, int $stockActualizado, ?int $usuarioId): ?array
 {
+    if (($product['estrategia_logistica'] ?? null) !== 'Push') {
+        return null;
+    }
+
     $stockMaximo = (int) ($product['stock_maximo'] ?? 0);
     if ($stockMaximo <= 0) {
         return null;

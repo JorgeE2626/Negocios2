@@ -113,6 +113,7 @@ try {
     ensureProviderSchema($pdo);
     ensureInventoryMovementSchema($pdo);
     ensurePurchaseOrderSchema($pdo);
+    ensureGlobalLogisticsSettingsSchema($pdo);
     $method = $_SERVER['REQUEST_METHOD'];
     $action = strtolower((string) ($_GET['action'] ?? ''));
     $input = adminInput();
@@ -178,7 +179,8 @@ try {
         )->fetchAll();
 
         $ventas = $pdo->query(
-            "SELECT v.folio, COALESCE(u.nombre, u.username, 'Cliente no disponible') AS cliente,
+            "SELECT v.folio, v.producto_id, DATE_FORMAT(v.fecha, '%Y-%m-%d') AS fecha,
+                   COALESCE(u.nombre, u.username, 'Cliente no disponible') AS cliente,
                    COALESCE(p.name, 'Producto no disponible') AS producto, v.total
              FROM ventas v LEFT JOIN usuarios u ON u.id = v.cliente_id
              LEFT JOIN productos p ON p.id = v.producto_id ORDER BY v.fecha DESC, v.id DESC"
@@ -195,7 +197,8 @@ try {
         )->fetchAll();
 
         $pedidos = $pdo->query(
-            "SELECT o.id, o.folio, o.producto_id, p.name AS producto, o.proveedor, o.cantidad,
+            "SELECT o.id, o.folio, o.producto_id, p.name AS producto,
+                    p.estrategia_logistica AS estrategia, o.proveedor, o.cantidad,
                     o.tipo, o.estado, DATE_FORMAT(o.fecha_pedido, '%d/%m/%Y') AS fecha,
                     o.notas, COALESCE(u.nombre, u.username, 'Sistema') AS usuario
              FROM pedidos_reposicion o
@@ -242,7 +245,38 @@ try {
         }
         $proveedores = array_merge($proveedores, array_values($productosPorProveedor));
 
-        adminResponse(compact('productos', 'proveedores', 'clientes', 'usuarios', 'interacciones', 'ventas', 'movimientos', 'pedidos', 'demandaPorProducto'));
+        $estrategiaGlobal = getGlobalLogisticsStrategy($pdo);
+        adminResponse(compact('productos', 'proveedores', 'clientes', 'usuarios', 'interacciones', 'ventas', 'movimientos', 'pedidos', 'demandaPorProducto', 'estrategiaGlobal'));
+    }
+
+    if ($method === 'PUT' && $action === 'estrategia_global') {
+        $estrategia = readStringField($input, ['estrategia']);
+        if (!in_array($estrategia, ['Push', 'Pull'], true)) {
+            adminResponse(['error' => 'La estrategia global debe ser Push o Pull.'], 400);
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $totalProductos = (int) $pdo->query('SELECT COUNT(*) FROM productos')->fetchColumn();
+            $actualizarEstrategia = $pdo->prepare('UPDATE productos SET estrategia_logistica = ?');
+            $actualizarEstrategia->execute([$estrategia]);
+            $guardarEstrategiaGlobal = $pdo->prepare(
+                "UPDATE configuracion_scm SET valor = ? WHERE clave = 'estrategia_global'"
+            );
+            $guardarEstrategiaGlobal->execute([$estrategia]);
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+
+        adminResponse([
+            'success' => true,
+            'estrategia' => $estrategia,
+            'productosActualizados' => $totalProductos
+        ]);
     }
 
     if ($method === 'POST' && $action === 'pedido') {
@@ -307,6 +341,7 @@ try {
 
         $pdo->beginTransaction();
         try {
+            $producto = null;
             $stmt = $pdo->prepare(
                 'SELECT id, folio, producto_id, proveedor, cantidad, tipo, estado
                  FROM pedidos_reposicion WHERE id = ? FOR UPDATE'
@@ -376,8 +411,30 @@ try {
                 }
             }
 
+            if ($nuevoEstado === 'cancelado' && $pedido['tipo'] === 'reposicion') {
+                $productoStmt = $pdo->prepare(
+                    'SELECT id, name, proveedor, stock_actual, stock_minimo, stock_maximo, estrategia_logistica
+                     FROM productos WHERE id = ? FOR UPDATE'
+                );
+                $productoStmt->execute([$pedido['producto_id']]);
+                $producto = $productoStmt->fetch();
+            }
+
             $actualizarPedido = $pdo->prepare('UPDATE pedidos_reposicion SET estado = ? WHERE id = ?');
             $actualizarPedido->execute([$nuevoEstado, $pedidoId]);
+
+            if ($nuevoEstado === 'cancelado'
+                && $pedido['tipo'] === 'reposicion'
+                && is_array($producto)
+                && $producto['estrategia_logistica'] === 'Push') {
+                $pedidoAutomatico = createAutomaticRestockOrder(
+                    $pdo,
+                    $producto,
+                    (int) $producto['stock_actual'],
+                    (int) ($_SESSION['user_id'] ?? 0) ?: null
+                );
+            }
+
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) {

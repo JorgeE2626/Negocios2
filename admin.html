@@ -110,6 +110,36 @@
         .logistica-opcion small { color: #555; padding-left: 24px; }
         .logistica-opcion input { width: auto; }
         .logistica-configuracion .btn { width: 100%; justify-content: center; }
+        .logistica-global {
+            background: #f8f9fa; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+        }
+        .logistica-global p { color: #555; margin-top: 4px; }
+        .logistica-global-controles { display: flex; gap: 10px; flex-wrap: wrap; }
+        .scm-progreso { background: #f7f8fc; border-radius: 12px; padding: 24px; margin: 16px 0 26px; }
+        .scm-progreso-cabecera { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .scm-progreso-cabecera strong { font-size: 24px; color: #0d1b3d; }
+        .scm-nivel { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 18px; font-weight: 700; }
+        .scm-nivel-inicial { color: #475569; background: #e2e8f0; }
+        .scm-nivel-basico { color: #1d4ed8; background: #dbeafe; }
+        .scm-nivel-desarrollo { color: #b45309; background: #fef3c7; }
+        .scm-nivel-operativo { color: #15803d; background: #dcfce7; }
+        .scm-progreso-track { height: 14px; border-radius: 999px; background: #dedede; overflow: hidden; }
+        .scm-progreso-valor { height: 100%; border-radius: inherit; background: #64748b; transition: width .25s ease, background-color .25s ease; }
+        .scm-progreso-valor.scm-nivel-basico { background: #2563eb; }
+        .scm-progreso-valor.scm-nivel-desarrollo { background: #d97706; }
+        .scm-progreso-valor.scm-nivel-operativo { background: #16a34a; }
+        .scm-checklist { display: grid; gap: 14px; margin-top: 16px; }
+        .scm-checklist h3 { margin: 0 0 2px; color: #0d1b3d; }
+        .scm-checklist label { display: flex; align-items: center; gap: 12px; font-size: 16px; color: #252a35; }
+        .scm-checklist input { width: 18px; height: 18px; accent-color: #198754; }
+        .scm-reportes-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-top: 22px; }
+        .scm-reporte-panel { min-width: 0; background: #f8f9fa; border-radius: 12px; padding: 20px; }
+        .scm-reporte-panel h3 { text-align: center; color: #0d1b3d; margin-bottom: 14px; }
+        .scm-grafica { position: relative; height: 340px; }
+        .scm-reporte-nota { color: #667085; font-size: 13px; margin-top: 12px; }
+        .scm-tabla-alertas { margin-top: 22px; }
+        @media (max-width: 900px) { .scm-reportes-grid { grid-template-columns: 1fr; } }
         .logistica-badge { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
         .logistica-badge-push { color: #084298; background: #cfe2ff; }
         .logistica-badge-pull { color: #664d03; background: #fff3cd; }
@@ -178,9 +208,32 @@
         }
         .datos-tiempo-real.actualizando::before { background: #ffc107; }
         .datos-tiempo-real.error::before { background: #dc3545; }
+        .notificaciones-pedidos {
+            position: fixed; top: 85px; right: 20px; z-index: 2000;
+            display: grid; gap: 10px; width: min(380px, calc(100vw - 32px));
+        }
+        .toast-pedido {
+            display: flex; align-items: flex-start; gap: 12px; padding: 16px;
+            color: #0d1b3d; background: #fff; border-left: 5px solid #28a745;
+            border-radius: 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+            animation: toast-pedido-entrada .2s ease-out;
+        }
+        .toast-pedido-icono { color: #28a745; font-size: 20px; margin-top: 2px; }
+        .toast-pedido-contenido { flex: 1; min-width: 0; }
+        .toast-pedido-contenido strong { display: block; margin-bottom: 3px; }
+        .toast-pedido-contenido p { color: #475467; font-size: 13px; overflow-wrap: anywhere; }
+        .toast-pedido-cerrar {
+            border: 0; background: transparent; color: #667085; cursor: pointer;
+            font-size: 18px; line-height: 1; padding: 0 2px;
+        }
+        @keyframes toast-pedido-entrada {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
+    <div id="notificaciones-pedidos" class="notificaciones-pedidos" role="status" aria-live="polite" aria-relevant="additions"></div>
     <header class="header">
         <div class="logo">
             <h1>ByteZone</h1>
@@ -246,10 +299,10 @@
                     <div class="submenu-link" data-vista="pedidos">
                         <i class="fas fa-clipboard-list"></i> Pedidos
                     </div>
-                    <div class="submenu-link" data-vista="scm-productos">
+                    <div class="submenu-link" data-vista="scm-madurez">
                         <i class="fas fa-chart-line"></i> Nivel Madurez
                     </div>
-                    <div class="submenu-link" data-vista="scm-productos">
+                    <div class="submenu-link" data-vista="scm-reportes">
                         <i class="fas fa-chart-bar"></i> Reportes SCM
                     </div>
                 </div>
@@ -312,6 +365,69 @@
                         <tbody id="tabla-productos-body"></tbody>
                     </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- VISTA: NIVEL DE MADUREZ SCM -->
+            <div id="scm-madurez" class="vista">
+                <div class="admin-container">
+                    <h2 class="admin-title">Nivel de Madurez SCM</h2>
+                    <section class="scm-progreso" aria-live="polite">
+                        <div class="scm-progreso-cabecera">
+                            <strong>Nivel visualizado:</strong>
+                            <span class="scm-nivel scm-nivel-inicial" id="scm-nivel-actual">Inicial</span>
+                            <span id="scm-progreso-resumen"></span>
+                        </div>
+                        <div class="scm-progreso-track" role="progressbar" aria-label="Avance de madurez SCM"
+                             aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="scm-progreso-track">
+                            <div class="scm-progreso-valor" id="scm-progreso-valor" style="width:0%"></div>
+                        </div>
+                    </section>
+                    <div class="scm-checklist">
+                        <h3>Checklist de avance</h3>
+                        <label><input type="checkbox" id="scm-check-catalogo" disabled> Registro de productos y proveedores básico.</label>
+                        <label><input type="checkbox" id="scm-check-inventario" disabled> Control de inventario funcional.</label>
+                        <label><input type="checkbox" id="scm-check-estrategia" disabled> Estrategia Push/Pull implementada globalmente.</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA: REPORTES SCM -->
+            <div id="scm-reportes" class="vista">
+                <div class="admin-container">
+                    <h2 class="admin-title">Reportes SCM (Dashboard)</h2>
+                    <div class="resumen-cards">
+                        <div class="card"><i class="fas fa-boxes-stacked"></i><h3 id="scm-reporte-productos">0</h3><p>Productos</p></div>
+                        <div class="card"><i class="fas fa-truck"></i><h3 id="scm-reporte-proveedores">0</h3><p>Proveedores</p></div>
+                        <div class="card"><i class="fas fa-cubes"></i><h3 id="scm-reporte-unidades">0</h3><p>Unidades en inventario</p></div>
+                        <div class="card"><i class="fas fa-clipboard-list"></i><h3 id="scm-reporte-pedidos">0</h3><p>Pedidos abiertos</p></div>
+                    </div>
+                    <div class="scm-reportes-grid">
+                        <section class="scm-reporte-panel">
+                            <h3>Estado del inventario</h3>
+                            <div class="scm-grafica"><canvas id="graficaInventarioSCM"></canvas></div>
+                            <p class="scm-reporte-nota">Clasificación por producto: agotado, bajo el mínimo o con stock suficiente.</p>
+                        </section>
+                        <section class="scm-reporte-panel">
+                            <h3>Productos por estrategia Push/Pull</h3>
+                            <div class="scm-grafica"><canvas id="graficaEstrategiasSCM"></canvas></div>
+                            <p class="scm-reporte-nota">La reposición automática solo aplica a productos con estrategia Push.</p>
+                        </section>
+                        <section class="scm-reporte-panel">
+                            <h3>Movimientos de inventario (últimos 30 días)</h3>
+                            <div class="scm-grafica"><canvas id="graficaMovimientosSCM"></canvas></div>
+                            <p class="scm-reporte-nota">Unidades que entraron y salieron según el registro de movimientos.</p>
+                        </section>
+                    </div>
+                    <section class="scm-tabla-alertas">
+                        <h3>Productos que requieren reposición</h3>
+                        <div class="tabla-responsive">
+                            <table class="tabla-datos">
+                                <thead><tr><th>Producto</th><th>Proveedor</th><th>Stock</th><th>Mínimo</th><th>Máximo</th><th>Pedido abierto</th></tr></thead>
+                                <tbody id="tabla-alertas-scm"></tbody>
+                            </table>
+                        </div>
+                    </section>
                 </div>
             </div>
 
@@ -389,6 +505,16 @@
                     <div class="admin-header">
                         <h2 class="admin-title">Logística - Estrategia de reposición</h2>
                     </div>
+                    <section class="logistica-global">
+                        <div>
+                            <h3>Estrategia global para el catálogo</h3>
+                            <p>Aplica Push o Pull a todos los productos. La reposición automática funciona en ambos modos.</p>
+                        </div>
+                        <div class="logistica-global-controles">
+                            <button class="btn btn-primary" type="button" id="btn-estrategia-global-push">Aplicar Push a todos</button>
+                            <button class="btn btn-secondary" type="button" id="btn-estrategia-global-pull">Aplicar Pull a todos</button>
+                        </div>
+                    </section>
                     <div class="logistica-layout">
                         <section class="logistica-configuracion">
                             <h3>Configurar estrategia</h3>
@@ -411,7 +537,7 @@
                                             <input type="radio" name="logistica-estrategia" value="Pull">
                                             PULL
                                         </span>
-                                        <small>Pedido manual</small>
+                                        <small>Reposición automática global</small>
                                     </label>
                                 </div>
                             </div>
@@ -691,13 +817,6 @@
                 <div class="campo">
                     <label>Stock máximo</label>
                     <input type="number" id="producto-stock-maximo" min="0" step="1" required>
-                </div>
-                <div class="campo">
-                    <label>Estrategia logística</label>
-                    <select id="producto-estrategia-logistica" required>
-                        <option value="Push">Push</option>
-                        <option value="Pull">Pull</option>
-                    </select>
                 </div>
                 <div class="campo">
                     <label>Precio ($)</label>
@@ -993,9 +1112,15 @@
         let cacheDemandaPorProducto = {};
         let cacheVentas = [];
         let cacheUsuarios = [];
+        let estrategiaGlobalSCM = 'Push';
         let miGrafica = null;
+        let graficaInventarioSCM = null;
+        let graficaEstrategiasSCM = null;
+        let graficaMovimientosSCM = null;
         let vistaActual = 'resumen';
         let actualizacionEnCurso = false;
+        let pedidosInicializados = false;
+        const idsPedidosConocidos = new Set();
         const intervaloTiempoReal = 5000;
 
         // VALIDACIONES EN TIEMPO REAL
@@ -1057,6 +1182,8 @@
             if (vistaId === 'resumen') cargarDashboard();
             if (vistaId === 'crm-resumen') cargarCRMResumen();
             if (vistaId === 'scm-productos') cargarProductos();
+            if (vistaId === 'scm-madurez') cargarMadurezSCM();
+            if (vistaId === 'scm-reportes') cargarReportesSCM();
             if (vistaId === 'inventario') cargarInventario();
             if (vistaId === 'movimientos') cargarMovimientos();
             if (vistaId === 'logistica') cargarLogistica();
@@ -1088,6 +1215,157 @@
             document.getElementById('total-ventas').textContent = `$${totalSum.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
         }
 
+        async function cargarMadurezSCM(recargar = true) {
+            if (recargar) await cargarDatosAdmin();
+            const catalogoCompleto = cacheProductos.length > 0 && cacheProveedores.length > 0;
+            const inventarioValido = cacheProductos.length > 0 && cacheProductos.every(producto =>
+                ['stock_actual', 'stock_minimo', 'stock_maximo'].every(campo =>
+                    Number.isInteger(Number(producto[campo])) && Number(producto[campo]) >= 0
+                )
+            );
+            const estrategiasCompletas = cacheProductos.length > 0 && cacheProductos.every(producto =>
+                String(producto.estrategia_logistica || '').trim().toLowerCase()
+                    === estrategiaGlobalSCM.toLowerCase()
+            );
+            const criterios = [
+                ['scm-check-catalogo', catalogoCompleto],
+                ['scm-check-inventario', inventarioValido],
+                ['scm-check-estrategia', estrategiasCompletas]
+            ];
+            criterios.forEach(([id, completo]) => {
+                document.getElementById(id).checked = completo;
+            });
+            actualizarIndicadorMadurezSCM(criterios.map(([, completo]) => completo));
+        }
+
+        function actualizarIndicadorMadurezSCM(criterios) {
+            const completados = criterios.filter(Boolean).length;
+            const porcentaje = Math.round(completados / criterios.length * 100);
+            const nivel = ['Inicial', 'Básico', 'En desarrollo', 'Operativo'][completados];
+            const claseNivel = ['inicial', 'basico', 'desarrollo', 'operativo'][completados];
+            const indicadorNivel = document.getElementById('scm-nivel-actual');
+            const barraProgreso = document.getElementById('scm-progreso-valor');
+
+            indicadorNivel.textContent = nivel;
+            indicadorNivel.classList.remove('scm-nivel-inicial', 'scm-nivel-basico', 'scm-nivel-desarrollo', 'scm-nivel-operativo');
+            indicadorNivel.classList.add(`scm-nivel-${claseNivel}`);
+            barraProgreso.classList.remove('scm-nivel-inicial', 'scm-nivel-basico', 'scm-nivel-desarrollo', 'scm-nivel-operativo');
+            barraProgreso.classList.add(`scm-nivel-${claseNivel}`);
+            document.getElementById('scm-progreso-resumen').textContent =
+                `${completados} de ${criterios.length} criterios (${porcentaje}%)`;
+            barraProgreso.style.width = `${porcentaje}%`;
+            document.getElementById('scm-progreso-track').setAttribute('aria-valuenow', String(porcentaje));
+        }
+
+        async function cargarReportesSCM(recargar = true) {
+            if (recargar) await cargarDatosAdmin();
+            const proveedoresUnicos = new Set(cacheProveedores
+                .map(proveedor => String(proveedor.nombre || '').trim().toLocaleLowerCase())
+                .filter(Boolean));
+            const unidades = cacheProductos.reduce((total, producto) =>
+                total + Math.max(0, Number(producto.stock_actual) || 0), 0);
+            const pedidosAbiertos = cachePedidos.filter(pedido =>
+                pedido.tipo === 'reposicion' && ['pendiente', 'en_proceso'].includes(pedido.estado)
+            ).length;
+
+            document.getElementById('scm-reporte-productos').textContent = String(cacheProductos.length);
+            document.getElementById('scm-reporte-proveedores').textContent = String(proveedoresUnicos.size);
+            document.getElementById('scm-reporte-unidades').textContent = String(unidades);
+            document.getElementById('scm-reporte-pedidos').textContent = String(pedidosAbiertos);
+
+            const agotados = cacheProductos.filter(producto => Number(producto.stock_actual) <= 0).length;
+            const bajos = cacheProductos.filter(producto =>
+                Number(producto.stock_actual) > 0
+                && Number(producto.stock_actual) <= Number(producto.stock_minimo)
+            ).length;
+            const disponibles = cacheProductos.length - agotados - bajos;
+            const push = cacheProductos.filter(producto =>
+                String(producto.estrategia_logistica || '').trim().toLowerCase() === 'push'
+            ).length;
+            const pull = cacheProductos.filter(producto =>
+                String(producto.estrategia_logistica || '').trim().toLowerCase() === 'pull'
+            ).length;
+
+            if (typeof Chart !== 'undefined') {
+                if (graficaInventarioSCM) graficaInventarioSCM.destroy();
+                graficaInventarioSCM = new Chart(document.getElementById('graficaInventarioSCM'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Agotados', 'Stock bajo mínimo', 'Stock suficiente'],
+                        datasets: [{ data: [agotados, bajos, disponibles],
+                            backgroundColor: ['#dc3545', '#ff9800', '#0d1b3d'] }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } } }
+                });
+
+                if (graficaEstrategiasSCM) graficaEstrategiasSCM.destroy();
+                graficaEstrategiasSCM = new Chart(document.getElementById('graficaEstrategiasSCM'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Push', 'Pull'],
+                        datasets: [{ label: 'Productos', data: [push, pull],
+                            backgroundColor: ['#0d1b3d', '#ff9800'] }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                        plugins: { legend: { display: false } } }
+                });
+
+                const fechaLimite = Date.now() - 30 * 24 * 60 * 60 * 1000;
+                const movimientosPeriodo = cacheMovimientos.filter(movimiento => {
+                    const [dia, mes, resto] = String(movimiento.fecha || '').split('/');
+                    const anio = resto?.slice(0, 4);
+                    const fecha = new Date(Number(anio), Number(mes) - 1, Number(dia)).getTime();
+                    return Number.isFinite(fecha) && fecha >= fechaLimite;
+                });
+                const entradas = movimientosPeriodo.filter(movimiento => movimiento.tipo === 'entrada')
+                    .reduce((total, movimiento) => total + Number(movimiento.cantidad || 0), 0);
+                const salidas = movimientosPeriodo.filter(movimiento => movimiento.tipo === 'salida')
+                    .reduce((total, movimiento) => total + Number(movimiento.cantidad || 0), 0);
+                if (graficaMovimientosSCM) graficaMovimientosSCM.destroy();
+                graficaMovimientosSCM = new Chart(document.getElementById('graficaMovimientosSCM'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Entradas (unidades)', 'Salidas (unidades)'],
+                        datasets: [{ data: [entradas, salidas],
+                            backgroundColor: ['#198754', '#dc3545'] }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } } }
+                });
+
+            }
+
+            const tbody = document.getElementById('tabla-alertas-scm');
+            const alertas = cacheProductos.filter(producto =>
+                Number(producto.stock_maximo) > 0
+                && Number(producto.stock_actual) < Number(producto.stock_maximo)
+            );
+            if (!alertas.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay productos por debajo del stock máximo.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = alertas.map(producto => {
+                const pedidoAbierto = cachePedidos.find(pedido =>
+                    Number(pedido.producto_id) === Number(producto.id)
+                    && pedido.tipo === 'reposicion'
+                    && ['pendiente', 'en_proceso'].includes(pedido.estado)
+                );
+                return `<tr><td>${escaparHTML(producto.name || producto.nombre || '')}</td>
+                    <td>${escaparHTML(producto.proveedor || 'Sin proveedor')}</td>
+                    <td>${Number(producto.stock_actual) || 0}</td>
+                    <td>${Number(producto.stock_minimo) || 0}</td>
+                    <td>${Number(producto.stock_maximo) || 0}</td>
+                    <td>${pedidoAbierto ? `${escaparHTML(pedidoAbierto.folio)} (${Number(pedidoAbierto.cantidad)} uds.)` : 'Sin pedido'}</td></tr>`;
+            }).join('');
+        }
+
+        function escaparHTML(valor) {
+            return String(valor ?? '').replace(/[&<>"']/g, caracter => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            }[caracter]));
+        }
+
         async function cargarDatosAdmin() {
             try {
                 const res = await fetch('php/admin_api.php', {
@@ -1108,6 +1386,14 @@
                 }
                 const datos = await res.json();
                 if (datos.error) throw new Error(datos.error);
+                const pedidosRecibidos = Array.isArray(datos.pedidos) ? datos.pedidos : [];
+                pedidosRecibidos.forEach(pedido => {
+                    const pedidoId = Number(pedido.id);
+                    if (!Number.isInteger(pedidoId) || pedidoId <= 0 || idsPedidosConocidos.has(pedidoId)) return;
+                    if (pedidosInicializados) mostrarNotificacionNuevoPedido(pedido);
+                    idsPedidosConocidos.add(pedidoId);
+                });
+                pedidosInicializados = true;
                 cacheProductos = Array.isArray(datos.productos) ? datos.productos : [];
                 cacheDemandaPorProducto = datos.demandaPorProducto && typeof datos.demandaPorProducto === 'object'
                     ? datos.demandaPorProducto
@@ -1119,6 +1405,7 @@
                 cachePedidos = Array.isArray(datos.pedidos) ? datos.pedidos : [];
                 cacheInteracciones = Array.isArray(datos.interacciones) ? datos.interacciones : [];
                 cacheUsuarios = Array.isArray(datos.usuarios) ? datos.usuarios : [];
+                estrategiaGlobalSCM = datos.estrategiaGlobal === 'Pull' ? 'Pull' : 'Push';
                 return datos;
             } catch (e) {
                 console.error("Error al cargar datos de la base de datos:", e);
@@ -1141,6 +1428,8 @@
                 if (vistaActual === 'resumen') await cargarDashboard(false);
                 if (vistaActual === 'crm-resumen') await cargarCRMResumen(false);
                 if (vistaActual === 'scm-productos') await cargarProductos(false);
+                if (vistaActual === 'scm-madurez') await cargarMadurezSCM(false);
+                if (vistaActual === 'scm-reportes') await cargarReportesSCM(false);
                 if (vistaActual === 'inventario') await cargarInventario(false);
                 if (vistaActual === 'movimientos') await cargarMovimientos(false);
                 if (vistaActual === 'logistica') await cargarLogistica(false);
@@ -1291,10 +1580,12 @@
 
                 movimientos.forEach(movimiento => {
                     const tr = document.createElement('tr');
+                    const esVenta = movimiento.tipo === 'salida'
+                        && String(movimiento.motivo || '').toLowerCase().startsWith('venta');
                     const celdas = [
                         movimiento.fecha || '',
                         movimiento.producto || 'Producto no disponible',
-                        movimiento.tipo === 'entrada' ? 'Entrada' : 'Salida',
+                        movimiento.tipo === 'entrada' ? 'Entrada' : (esVenta ? 'Venta' : 'Salida'),
                         `${movimiento.tipo === 'entrada' ? '+' : '-'}${movimiento.cantidad}`,
                         movimiento.motivo || '',
                         movimiento.usuario || 'Sistema'
@@ -1414,11 +1705,13 @@
                 if (!respuesta.ok || !resultado.success) {
                     throw new Error(resultado.error || 'No se pudo actualizar el pedido.');
                 }
-                mostrarNotificacionPedidoAutomatico(resultado.pedidoAutomatico);
                 await cargarDatosAdmin();
                 await cargarPedidos(false);
                 if (estado === 'cancelado') {
-                    mostrarNotificacionPedido('Pedido cancelado', 'El pedido se canceló correctamente. El inventario no fue modificado.');
+                    mostrarNotificacionPedido(
+                        'Pedido cancelado',
+                        'El pedido se canceló correctamente. El inventario no se modificó.'
+                    );
                 }
             } catch (error) {
                 console.error('Error al actualizar pedido:', error);
@@ -1428,14 +1721,42 @@
             }
         }
 
-        function mostrarNotificacionPedidoAutomatico(pedido) {
-            if (!pedido) return;
+        function mostrarNotificacionNuevoPedido(pedido) {
+            const contenedor = document.getElementById('notificaciones-pedidos');
+            if (!contenedor) return;
+
             const cantidad = Number(pedido.cantidad);
             const unidad = cantidad === 1 ? 'unidad' : 'unidades';
-            mostrarNotificacionPedido(
-                'Pedido automático',
-                `Se hizo el pedido automático de ${cantidad} ${unidad} de ${pedido.producto}.`
-            );
+            const estrategia = String(pedido.estrategia || 'Push').toUpperCase();
+            const toast = document.createElement('div');
+            toast.className = 'toast-pedido';
+            toast.setAttribute('role', 'status');
+
+            const icono = document.createElement('i');
+            icono.className = 'fas fa-check-circle toast-pedido-icono';
+            icono.setAttribute('aria-hidden', 'true');
+            toast.appendChild(icono);
+
+            const contenido = document.createElement('div');
+            contenido.className = 'toast-pedido-contenido';
+            const titulo = document.createElement('strong');
+            titulo.textContent = 'Pedido realizado';
+            const mensaje = document.createElement('p');
+            mensaje.textContent =
+                `Se hizo un pedido de ${cantidad} ${unidad} de ${pedido.producto || 'un producto'} (${estrategia}).`;
+            contenido.append(titulo, mensaje);
+            toast.appendChild(contenido);
+
+            const cerrar = document.createElement('button');
+            cerrar.type = 'button';
+            cerrar.className = 'toast-pedido-cerrar';
+            cerrar.setAttribute('aria-label', 'Cerrar notificación');
+            cerrar.textContent = '×';
+            cerrar.addEventListener('click', () => toast.remove());
+            toast.appendChild(cerrar);
+
+            contenedor.appendChild(toast);
+            window.setTimeout(() => toast.remove(), 8000);
         }
 
         function mostrarNotificacionPedido(titulo, mensaje) {
@@ -1622,6 +1943,47 @@
             }
         });
 
+        async function aplicarEstrategiaGlobal(estrategia) {
+            if (!cacheProductos.length) {
+                alert('No hay productos registrados para actualizar.');
+                return;
+            }
+            if (!window.confirm(`¿Aplicar la estrategia ${estrategia} a los ${cacheProductos.length} productos?`)) return;
+
+            const botones = [
+                document.getElementById('btn-estrategia-global-push'),
+                document.getElementById('btn-estrategia-global-pull')
+            ];
+            botones.forEach(item => { item.disabled = true; });
+            try {
+                const respuesta = await fetch('php/admin_api.php?action=estrategia_global', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ estrategia })
+                });
+                const resultado = await respuesta.json();
+                if (!respuesta.ok || !resultado.success) {
+                    throw new Error(resultado.error || 'No se pudo aplicar la estrategia global.');
+                }
+                await cargarDatosAdmin();
+                await cargarLogistica(false);
+                await cargarMadurezSCM(false);
+                if (vistaActual === 'scm-reportes') await cargarReportesSCM(false);
+                alert(`Estrategia ${estrategia} aplicada a ${resultado.productosActualizados} productos. La reposición automática se mantiene activa.`);
+            } catch (error) {
+                console.error('Error al aplicar estrategia global:', error);
+                alert(error.message || 'No se pudo aplicar la estrategia global.');
+            } finally {
+                botones.forEach(item => { item.disabled = false; });
+            }
+        }
+
+        document.getElementById('btn-estrategia-global-push').addEventListener('click', () =>
+            aplicarEstrategiaGlobal('Push'));
+        document.getElementById('btn-estrategia-global-pull').addEventListener('click', () =>
+            aplicarEstrategiaGlobal('Pull'));
+
         document.getElementById('filtro-movimiento-tipo').addEventListener('change', () => cargarMovimientos(false));
         document.getElementById('filtro-movimiento-producto').addEventListener('change', () => cargarMovimientos(false));
 
@@ -1664,7 +2026,6 @@
 
                 document.getElementById('modal-movimiento').classList.remove('activo');
                 document.getElementById('form-movimiento').reset();
-                mostrarNotificacionPedidoAutomatico(resultado.pedidoAutomatico);
                 await cargarDatosAdmin();
                 await cargarMovimientos(false);
             } catch (error) {
@@ -1715,7 +2076,6 @@
                 await cargarDatosAdmin();
                 await cargarInventario(false);
                 document.getElementById('modal-inventario').classList.remove('activo');
-                mostrarNotificacionPedidoAutomatico(resultado.pedidoAutomatico);
             } catch (error) {
                 console.error('Error al editar inventario:', error);
                 alert(error.message || 'No se pudo actualizar el inventario.');
@@ -2174,7 +2534,6 @@
             document.getElementById('producto-stock-actual').value = '0';
             document.getElementById('producto-stock-minimo').value = '0';
             document.getElementById('producto-stock-maximo').value = '0';
-            document.getElementById('producto-estrategia-logistica').value = 'Push';
             document.getElementById('producto-precio').value = '';
             document.getElementById('producto-activo').checked = true;
             modalProducto.classList.add('activo');
@@ -2193,8 +2552,6 @@
             document.getElementById('producto-stock-actual').value = p.stock_actual ?? 0;
             document.getElementById('producto-stock-minimo').value = p.stock_minimo ?? 0;
             document.getElementById('producto-stock-maximo').value = p.stock_maximo ?? 0;
-            document.getElementById('producto-estrategia-logistica').value =
-                String(p.estrategia_logistica || '').toLowerCase() === 'pull' ? 'Pull' : 'Push';
             document.getElementById('producto-precio').value = p.price || p.precio;
             document.getElementById('producto-activo').checked = Number(p.active) === 1 || p.active === true;
             modalProducto.classList.add('activo');
@@ -2222,6 +2579,13 @@
 
         document.getElementById('form-producto').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const productoExistente = document.getElementById('producto-id').value
+                ? cacheProductos.find(item => parseInt(item.id) === parseInt(document.getElementById('producto-id').value))
+                : null;
+            const estrategiaActual = productoExistente
+                ? (String(productoExistente.estrategia_logistica || '').trim() || estrategiaGlobalSCM)
+                : estrategiaGlobalSCM;
+
             const payload = {
                 id: document.getElementById('producto-id').value,
                 name: document.getElementById('producto-nombre').value.trim(),
@@ -2232,7 +2596,7 @@
                 stock_actual: parseInt(document.getElementById('producto-stock-actual').value, 10),
                 stock_minimo: parseInt(document.getElementById('producto-stock-minimo').value, 10),
                 stock_maximo: parseInt(document.getElementById('producto-stock-maximo').value, 10),
-                estrategia_logistica: document.getElementById('producto-estrategia-logistica').value.trim(),
+                estrategia_logistica: estrategiaActual,
                 price: parseFloat(document.getElementById('producto-precio').value),
                 active: document.getElementById('producto-activo').checked
             };
@@ -2254,7 +2618,6 @@
                 await cargarProductos(false);
             }
             cerrarModales();
-            mostrarNotificacionPedidoAutomatico(resultado.pedidoAutomatico);
         });
 
         function cerrarModales() {
